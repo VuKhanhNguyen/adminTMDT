@@ -190,75 +190,283 @@
 </article>
 
 <!-- Modal -->
-<div class="modal fade" id="orderDetailModal" tabindex="-1" role="dialog" aria-labelledby="orderDetailModalLabel" aria-hidden="true">
+<div class="modal fade" id="orderDetailModal" tabindex="-1" role="dialog" aria-labelledby="orderDetailModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
             <form id="updateOrderForm" method="post" asp-controller="OrderManagerment" asp-action="UpdateOrderStatus">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="orderDetailModalLabel">Chi tiết đơn hàng</h5>
+                    <h5 class="modal-title" id="orderDetailsModalLabel">Chi tiết đơn hàng</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Đóng">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
                 <div class="modal-body">
-                    <input type="hidden" name="IddonHang" id="modalOrderId" />
+                    <!-- Hidden Order ID -->
+                    <input type="hidden" name="IddonHang" id="modalOrderIdHidden" />
 
-                    <div class="form-group">
-                        <label>Khách hàng</label>
-                        <input type="text" class="form-control" id="modalCustomerName" readonly />
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <p><strong>Mã đơn hàng:</strong> <span id="modalOrderId"></span></p>
+                            <p><strong>Khách hàng:</strong> <span id="modalCustomerName"></span></p>
+                            <p><strong>Ngày đặt:</strong> <span id="modalOrderDate"></span></p>
+                            <p><strong>Phương thức thanh toán:</strong> <span id="modalPaymentMethod"></span></p>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="modalOrderStatus"><strong>Trạng thái đơn hàng:</strong></label>
+                                <select class="form-control" name="TrangThai" id="modalOrderStatus">
+                                    <option value="Đã đặt hàng">Đã đặt hàng</option>
+                                    <option value="Đang xử lý">Đang xử lý</option>
+                                    <option value="Đang giao hàng">Đang giao hàng</option>
+                                    <option value="Đã giao hàng">Đã giao hàng</option>
+                                    <option value="Hoàn thành">Hoàn thành</option>
+                                    <option value="Đã hủy">Đã hủy</option>
+                                </select>
+                            </div>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label>Ngày đặt</label>
-                        <input type="text" class="form-control" id="modalOrderDate" readonly />
-                    </div>
-                    <div class="form-group">
-                        <label>Tổng tiền</label>
-                        <input type="text" class="form-control" id="modalTotalAmount" readonly />
-                    </div>
-                    <div class="form-group">
-                        <label>Phương thức thanh toán</label>
-                        <input type="text" class="form-control" id="modalPaymentMethod" readonly />
-                    </div>
-                    <div class="form-group">
-                        <label>Trạng thái</label>
-                        <select class="form-control" name="TrangThai" id="modalOrderStatus">
-                            <option value="Đã đặt hàng">Đã đặt hàng</option>
-                            <option value="Đang xử lý">Đang xử lý</option>
-                            <option value="Đang giao hàng">Đang giao hàng</option>
-                            <option value="Đã giao hàng">Đã giao hàng</option>
-                            <option value="Hoàn thành">Hoàn thành</option>
-                            <option value="Đã hủy">Đã hủy</option>
-                        </select>
+
+                    <!-- Chi tiết sản phẩm -->
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>Sản phẩm</th>
+                                    <th>Số lượng</th>
+                                    <th>Đơn giá</th>
+                                    <th>Thành tiền</th>
+                                </tr>
+                            </thead>
+                            <tbody id="modalOrderItems">
+                                <!-- Dữ liệu sản phẩm sẽ được thêm ở đây bằng JS -->
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <td colspan="3" class="text-right"><strong>Tổng tiền:</strong></td>
+                                    <td><strong id="modalTotalAmount"></strong></td>
+                                </tr>
+                            </tfoot>
+                        </table>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="submit" class="btn btn-success">Cập nhật trạng thái</button>
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Đóng</button>
+                    
+                    <button type="button" class="btn btn-info" id="savePDFButton" onclick="savePDF()" style="display: none;">Lưu PDF</button>
+                    <button type="submit" class="btn btn-primary">Cập nhật trạng thái</button>
                 </div>
             </form>
         </div>
     </div>
 </div>
-@section Scripts {
-    <script>
-    $(document).ready(function () {
-        $(".view-details-btn").click(function () {
-            var orderId = $(this).data("id");
 
-            $.ajax({
-                url: '/OrderManagerment/GetOrderById',
-                type: 'GET',
-                data: { id: orderId },
-                success: function (data) {
-                    $("#modalOrderId").val(data.iddonHang);
-                    $("#modalCustomerName").val(data.khachHang);
-                    $("#modalOrderDate").val(data.ngayLap);
-                    $("#modalTotalAmount").val(data.tongTien);
-                    $("#modalPaymentMethod").val(data.thanhToan);
-                    $("#modalOrderStatus").val(data.trangThai);
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <!-- Font cho tiếng Việt -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/polyfills.umd.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.2/purify.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            $(".view-details-btn").click(function () {
+                var orderId = $(this).data("id");
+
+                $.ajax({
+                    url: '/OrderManagerment/GetOrderById',
+                    type: 'GET',
+                    data: { id: orderId },
+                    success: function (data) {
+                        // Gán dữ liệu hiển thị
+                        $("#modalOrderId").text(data.iddonHang); // span
+                        $("#modalOrderIdHidden").val(data.iddonHang); // hidden input
+                        $("#modalCustomerName").text(data.khachHang);
+                        $("#modalOrderDate").text(data.ngayLap);
+                        $("#modalTotalAmount").text(data.tongTien);
+                        $("#modalPaymentMethod").text(data.thanhToan);
+                        $("#modalOrderStatus").val(data.trangThai);
+
+                        // Hiển thị chi tiết sản phẩm
+                        let tbody = $("#modalOrderItems");
+                        tbody.empty();
+
+                        data.chiTiet.forEach(item => {
+                            tbody.append(`
+                                <tr>
+                                    <td>${item.tenSanPham}</td>
+                                    <td>${item.soLuong}</td>
+                                    <td>${item.donGia.toLocaleString()}đ</td>
+                                    <td>${item.thanhTien.toLocaleString()}đ</td>
+                                </tr>
+                            `);
+                        });
+
+                        // Kiểm tra trạng thái đơn hàng để hiển thị/ẩn nút Lưu PDF
+                        if (data.trangThai === "Hoàn thành") {
+                            $("#savePDFButton").show();
+                        } else {
+                            $("#savePDFButton").hide();
+                        }
+
+                        // Hiển thị modal
+                        $("#orderDetailModal").modal('show');
+                    }
+                });
+            });
+
+            // Đảm bảo backdrop biến mất khi đóng modal
+            $('#orderDetailModal').on('hidden.bs.modal', function () {
+                $('body').removeClass('modal-open');
+                $('.modal-backdrop').remove();
+            });
+
+            // Đóng modal bằng nút "Đóng"
+            $('[data-dismiss="modal"]').click(function () {
+                $('#orderDetailModal').modal('hide');
+            });
+
+            // Hiển thị/ẩn nút Lưu PDF khi thay đổi trạng thái đơn hàng
+            $('#modalOrderStatus').change(function() {
+                if ($(this).val() === "Hoàn thành") {
+                    $('#savePDFButton').show();
+                } else {
+                    $('#savePDFButton').hide();
                 }
             });
         });
-    });
-</script>
+
+        // Function để tạo và tải PDF sử dụng HTML2Canvas cho tiếng Việt
+        function exportToPDF() {
+            // Tạo một phần tử tạm thời để render nội dung PDF
+            const printContainer = document.createElement('div');
+            printContainer.style.padding = '20px';
+            printContainer.style.fontFamily = 'Arial, sans-serif';
+            printContainer.style.position = 'absolute';
+            printContainer.style.left = '-9999px';
+            printContainer.style.top = '-9999px';
+            printContainer.style.width = '210mm'; // Chiều rộng A4
+
+            // Lấy thông tin đơn hàng
+            const orderId = $("#modalOrderId").text();
+            const customerName = $("#modalCustomerName").text();
+            const orderDate = $("#modalOrderDate").text();
+            const paymentMethod = $("#modalPaymentMethod").text();
+            const orderStatus = $("#modalOrderStatus option:selected").text();
+            const totalAmount = $("#modalTotalAmount").text();
+
+            // Tạo nội dung HTML
+            let htmlContent = `
+                <div style="text-align: center; margin-bottom: 20px">
+                    <h1 style="font-size: 20px; font-weight: bold;">CHI TIẾT ĐƠN HÀNG</h1>
+                </div>
+                <div style="margin-bottom: 30px">
+                    <p><strong>Mã đơn hàng:</strong> ${orderId}</p>
+                    <p><strong>Khách hàng:</strong> ${customerName}</p>
+                    <p><strong>Ngày đặt:</strong> ${orderDate}</p>
+                    <p><strong>Trạng thái:</strong> ${orderStatus}</p>
+                    <p><strong>Phương thức thanh toán:</strong> ${paymentMethod}</p>
+                </div>
+                <div>
+                    <table style="width: 100%; border-collapse: collapse; margin-bottom: 30px;">
+                        <thead>
+                            <tr style="background-color: #f2f2f2;">
+                                <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Sản phẩm</th>
+                                <th style="border: 1px solid #ddd; padding: 8px; text-align: center;">Số lượng</th>
+                                <th style="border: 1px solid #ddd; padding: 8px; text-align: right;">Đơn giá</th>
+                                <th style="border: 1px solid #ddd; padding: 8px; text-align: right;">Thành tiền</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+
+            // Thêm chi tiết sản phẩm
+            $("#modalOrderItems tr").each(function(index) {
+                const productName = $(this).find("td:eq(0)").text();
+                const quantity = $(this).find("td:eq(1)").text();
+                const price = $(this).find("td:eq(2)").text();
+                const amount = $(this).find("td:eq(3)").text();
+
+                htmlContent += `
+                    <tr>
+                        <td style="border: 1px solid #ddd; padding: 8px; text-align: left;">${productName}</td>
+                        <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${quantity}</td>
+                        <td style="border: 1px solid #ddd; padding: 8px; text-align: right;">${price}</td>
+                        <td style="border: 1px solid #ddd; padding: 8px; text-align: right;">${amount}</td>
+                    </tr>
+                `;
+            });
+
+            // Thêm tổng tiền
+            htmlContent += `
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td colspan="3" style="border: 1px solid #ddd; padding: 8px; text-align: right;"><strong>Tổng tiền:</strong></td>
+                                <td style="border: 1px solid #ddd; padding: 8px; text-align: right;"><strong>${totalAmount}</strong></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            `;
+
+            // Thêm chân trang
+            const today = new Date();
+            const dateStr = today.toLocaleDateString('vi-VN');
+            htmlContent += `
+                <div style="position: absolute; bottom: 20px; width: 100%;">
+                    <p style="font-size: 10px; font-style: italic; text-align: left;">Xuất ngày: ${dateStr}</p>
+                    <p style="font-size: 10px; font-style: italic; text-align: center;">Cảm ơn quý khách đã mua hàng!</p>
+                </div>
+            `;
+
+            // Thêm nội dung vào container
+            printContainer.innerHTML = DOMPurify.sanitize(htmlContent);
+            document.body.appendChild(printContainer);
+
+            // Sử dụng html2canvas để chuyển HTML thành hình ảnh
+            html2canvas(printContainer, {
+                scale: 2, // Tăng độ phân giải
+                useCORS: true,
+                allowTaint: true,
+                logging: false
+            }).then(canvas => {
+                // Khởi tạo jsPDF
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF('p', 'mm', 'a4');
+
+                // Tính toán tỷ lệ để vừa với trang A4
+                const imgWidth = 210; // A4 width in mm
+                const pageHeight = 297; // A4 height in mm
+                const imgHeight = canvas.height * imgWidth / canvas.width;
+
+                // Thêm ảnh vào PDF
+                const imgData = canvas.toDataURL('image/png');
+                doc.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+
+                // Thêm trang nếu nội dung vượt quá một trang
+                let heightLeft = imgHeight;
+                let position = 0;
+
+                heightLeft -= pageHeight;
+
+                while (heightLeft > 0) {
+                    position = heightLeft - imgHeight;
+                    doc.addPage();
+                    doc.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+                    heightLeft -= pageHeight;
+                }
+
+                // Lưu file với tên theo mã đơn hàng
+                const filename = `DonHang_${orderId}_${dateStr.replace(/\//g, '-')}.pdf`;
+                doc.save(filename);
+
+                // Xóa container tạm
+                document.body.removeChild(printContainer);
+            });
+        }
+
+        // Gán sự kiện cho nút lưu PDF
+        function savePDF() {
+            exportToPDF();
+        }
+    </script>
 }

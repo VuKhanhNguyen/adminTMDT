@@ -66,6 +66,8 @@ namespace WebBanHang.Controllers.OrderManagermentController
             var order = _context.DonHangs
                 .Include(d => d.IdkhachHangNavigation)
                 .Include(d => d.IdthanhToanNavigation)
+                .Include(d => d.ChiTietDonHangs)
+                .ThenInclude(ct => ct.IdsanPhamNavigation)
                 .FirstOrDefault(d => d.IddonHang == id);
 
             if (order == null) return NotFound();
@@ -74,14 +76,21 @@ namespace WebBanHang.Controllers.OrderManagermentController
             {
                 iddonHang = order.IddonHang,
                 khachHang = order.IdkhachHangNavigation?.HoTen,
-                ngayLap = order.NgayLap.HasValue ? order.NgayLap.Value.ToString("dd/MM/yyyy") : null,
-                tongTien = order.TongTien.HasValue ? order.TongTien.Value.ToString("N0") + " VND" : null,
+                ngayLap = order.NgayLap?.ToString("dd/MM/yyyy") ?? string.Empty,
+                tongTien = order.TongTien?.ToString("N0") + "đ" ?? "0đ",
                 thanhToan = order.IdthanhToanNavigation?.TenThanhToan,
-                trangThai = order.TrangThai
+                trangThai = order.TrangThai,
+                chiTiet = order.ChiTietDonHangs.Select(ct => new {
+                    tenSanPham = ct.IdsanPhamNavigation?.TenSanPham,
+                    soLuong = ct.SoLuong,
+                    donGia = ct.IdsanPhamNavigation?.GiaBan ?? 0,
+                    thanhTien = (ct.SoLuong ?? 0) * (ct.IdsanPhamNavigation?.GiaBan ?? 0)
+                })
             };
 
             return Json(result);
         }
+
 
         [HttpPost]
         public IActionResult UpdateOrderStatus(int iddonHang, string trangThai)
