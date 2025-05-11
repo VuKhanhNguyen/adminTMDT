@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test CKEditor</title>
+</head>
+<body>
+    <h1>Thêm nội dung</h1>
+
+    <form id="contentForm">
+        <textarea id="content" name="content">hello</textarea>
+        <br>
+        <input type="submit" value="Thêm nội dung">
+    </form>
+
+    <h1>Chi tiết nội dung</h1>
+    <div id="output"></div>
+
+    <!-- Bao gồm CKEditor -->
+   
+    <!-- Hoặc từ CDN -->
+    <!-- <script src="https://cdn.ckeditor.com/4.16.2/standard/ckeditor.js"></script> -->
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            CKEDITOR.replace('content');
+        });
+        // Bắt sự kiện submit form
+        document.getElementById('contentForm').addEventListener('submit', function (e) {
+            e.preventDefault(); // không reload trang
+
+            // Lấy dữ liệu từ CKEditor
+            const content = CKEDITOR.instances.content.getData();
+            // Hiển thị nội dung đã nhập
+            document.getElementById('output').innerHTML = content;
+        });
+    </script>
+     <script src="./ckeditor/ckeditor.js"></script>
+
+</body>
+</html>

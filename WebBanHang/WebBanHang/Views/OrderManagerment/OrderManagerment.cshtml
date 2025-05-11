@@ -1,0 +1,264 @@
+﻿@{
+    ViewData["Title"] = "Quan ly don hang";
+}
+@model List<WebBanHang.Models.DonHang>
+@{
+    int currentPage = ViewBag.CurrentPage;
+    int pageSize = ViewBag.PageSize;
+    int totalOrders = ViewBag.TotalOrders;
+    int totalPages = (int)Math.Ceiling((double)totalOrders / pageSize);
+
+    int startItem = ((currentPage - 1) * pageSize) + 1;
+    int endItem = Math.Min(currentPage * pageSize, totalOrders);
+}
+<!-- header -->
+<div class="top-row bg-white shadow-sm" style="display: flex; align-items: center; justify-content: space-between; padding: 10px;">
+    <div class="d-flex align-items-center">
+        <img src="/images/logo_web_after_removeBG.png" alt="Logo" height="40px" class="d-inline-block align-text-top me-2">
+        <!-- <h5 class="mb-0 text-success">Cửa hàng của bạn</h5> -->
+    </div>
+
+    <div class="d-flex align-items-center">
+        <div class="search-box me-3">
+            <div class="input-group">
+                <input type="text" class="form-control" placeholder="Tìm kiếm..." aria-label="Search">
+                <div class="input-group-append">
+                    <button class="btn btn-outline-success" type="button">
+                        <i class="fa fa-search"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="dropdown me-3">
+            <button class="btn btn-light dropdown-toggle" type="button" id="notificationDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <i class="fa-solid fa-bell text-secondary"></i>
+                <span class="badge badge-danger">3</span>
+            </button>
+            <div class="dropdown-menu dropdown-menu-right" aria-labelledby="notificationDropdown">
+                <a class="dropdown-item" href="#">Có 5 đơn hàng mới</a>
+                <a class="dropdown-item" href="#">2 sản phẩm sắp hết hàng</a>
+                <a class="dropdown-item" href="#">Cập nhật phiên bản mới</a>
+                <div class="dropdown-divider"></div>
+                <a class="dropdown-item text-center" href="#">Xem tất cả</a>
+            </div>
+        </div>
+
+        <div class="user-info d-flex align-items-center">
+            <div class="avatar me-2">
+                <img src="/images/10692220.png" alt="User Avatar" class="rounded-circle" width="40" height="40">
+            </div>
+            <div class="user-details d-none d-sm-block">
+                <h6 class="mb-0">Admin</h6>
+                <small class="text-muted">Quản trị viên</small>
+            </div>
+        </div>
+        <a id="logout" href="" class="btn btn-outline-danger btn-sm ms-3">
+            <i class="fa-solid fa-sign-out-alt me-1"></i> Đăng xuất
+        </a>
+    </div>
+</div>
+
+<!-- Main Content -->
+<article class="content p-4">
+    <div class="text-center mb-4">
+        <h4 class="text-success font-weight-bold">Quản lý đơn hàng</h4>
+    </div>
+
+    <!-- Filters -->
+    <div class="row mb-2">
+        <div class="col-md-3">
+            <div class="form-group">
+                <label for="orderStatus">Trạng thái đơn hàng</label>
+                <select class="form-control" id="orderStatus">
+                    <option value="">Tất cả trạng thái</option>
+                    <option value="pending">Chờ xử lý</option>
+                    <option value="confirmed">Đã xác nhận</option>
+                    <option value="shipping">Đang giao hàng</option>
+                    <option value="shipping">Đã giao hàng</option>
+                    <option value="completed">Hoàn thành</option>
+                    <option value="cancelled">Đã hủy</option>
+                </select>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="form-group">
+                <label for="paymentMethod">Phương thức thanh toán</label>
+                @Html.DropDownList("paymentMethod", (SelectList)ViewBag.PaymentMethods, "Tất cả phương thức", new { @class = "form-control", id = "paymentMethod" })
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="form-group">
+                <label for="customerSearch">Tìm kiếm</label>
+                <div class="input-group">
+                    <input type="text" class="form-control" id="customerSearch" placeholder="Nhập tên khách hàng hoặc mã đơn hàng">
+                    <div class="input-group-append">
+                        <button class="btn btn-outline-success" type="button">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+        <!-- <div class="col-md-2 d-flex align-items-end">
+            <button class="btn btn-primary w-100">
+                <i class="fas fa-filter me-2"></i>Lọc
+            </button>
+        </div> -->
+    </div>
+
+    <!-- Orders Table -->
+    <div class="card shadow">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="thead-light">
+                    <tr>
+                        <th>Mã đơn hàng</th>
+                        <th>Khách hàng</th>
+                        <th>Ngày đặt</th>
+                        <th>Tổng tiền</th>
+                        <th>Phương thức</th>
+                        <th>Trạng thái</th>
+                        <th>Thao tác</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var order in ViewBag.Orders)
+                    {
+                        string badgeClass = order.TrangThai switch
+                        {
+                            "Đã giao hàng" => "success",
+                            "Đang giao hàng" => "warning",
+                            "Đã đặt hàng" => "info",
+                            "Đang xử lý" => "primary",
+                            "Đã hủy" => "danger",
+                            _ => "secondary"
+                        };
+
+                        <tr>
+                            <td>@order.IddonHang</td>
+                            <td>@order.IdkhachHangNavigation?.HoTen</td>
+                            <td>@order.NgayLap.ToString("dd/MM/yyyy")</td>
+                            <td>@string.Format("{0:N0}đ", order.TongTien)</td>
+                            <td>@order.IdthanhToanNavigation?.TenThanhToan</td>
+                            <td><span class="badge badge-@badgeClass">@order.TrangThai</span></td>
+                            <td>
+                                <button class="btn btn-sm btn-info view-details-btn" data-id="@order.IddonHang" data-toggle="modal" data-target="#orderDetailModal" title="Chi tiết">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                @* <button class="btn btn-sm btn-success" title="Xác nhận"> *@
+                                @*     <i class="fas fa-check"></i> *@
+                                @* </button> *@
+                                <button class="btn btn-sm btn-danger" title="Hủy">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            <div class="d-flex justify-content-between align-items-center mt-4">
+                <div class="text-muted">
+                    Hiển thị @startItem - @endItem trong tổng số @totalOrders đơn hàng
+                </div>
+                <nav aria-label="Page navigation">
+                    <ul class="pagination mb-0">
+                        <li class="page-item @(currentPage == 1 ? "disabled" : "")">
+                            <a class="page-link" href="@Url.Action("OrderManagerment", new { page = currentPage - 1 })">Trước</a>
+                        </li>
+
+                        @for (int i = 1; i <= totalPages; i++)
+                        {
+                            <li class="page-item @(i == currentPage ? "active" : "")">
+                                <a class="page-link" href="@Url.Action("OrderManagerment", new { page = i })">@i</a>
+                            </li>
+                        }
+
+                        <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
+                            <a class="page-link" href="@Url.Action("OrderManagerment", new { page = currentPage + 1 })">Sau</a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+</article>
+
+<!-- Modal -->
+<div class="modal fade" id="orderDetailModal" tabindex="-1" role="dialog" aria-labelledby="orderDetailModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <form id="updateOrderForm" method="post" asp-controller="OrderManagerment" asp-action="UpdateOrderStatus">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="orderDetailModalLabel">Chi tiết đơn hàng</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Đóng">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="IddonHang" id="modalOrderId" />
+
+                    <div class="form-group">
+                        <label>Khách hàng</label>
+                        <input type="text" class="form-control" id="modalCustomerName" readonly />
+                    </div>
+                    <div class="form-group">
+                        <label>Ngày đặt</label>
+                        <input type="text" class="form-control" id="modalOrderDate" readonly />
+                    </div>
+                    <div class="form-group">
+                        <label>Tổng tiền</label>
+                        <input type="text" class="form-control" id="modalTotalAmount" readonly />
+                    </div>
+                    <div class="form-group">
+                        <label>Phương thức thanh toán</label>
+                        <input type="text" class="form-control" id="modalPaymentMethod" readonly />
+                    </div>
+                    <div class="form-group">
+                        <label>Trạng thái</label>
+                        <select class="form-control" name="TrangThai" id="modalOrderStatus">
+                            <option value="Đã đặt hàng">Đã đặt hàng</option>
+                            <option value="Đang xử lý">Đang xử lý</option>
+                            <option value="Đang giao hàng">Đang giao hàng</option>
+                            <option value="Đã giao hàng">Đã giao hàng</option>
+                            <option value="Hoàn thành">Hoàn thành</option>
+                            <option value="Đã hủy">Đã hủy</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-success">Cập nhật trạng thái</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Đóng</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+@section Scripts {
+    <script>
+    $(document).ready(function () {
+        $(".view-details-btn").click(function () {
+            var orderId = $(this).data("id");
+
+            $.ajax({
+                url: '/OrderManagerment/GetOrderById',
+                type: 'GET',
+                data: { id: orderId },
+                success: function (data) {
+                    $("#modalOrderId").val(data.iddonHang);
+                    $("#modalCustomerName").val(data.khachHang);
+                    $("#modalOrderDate").val(data.ngayLap);
+                    $("#modalTotalAmount").val(data.tongTien);
+                    $("#modalPaymentMethod").val(data.thanhToan);
+                    $("#modalOrderStatus").val(data.trangThai);
+                }
+            });
+        });
+    });
+</script>
+}
