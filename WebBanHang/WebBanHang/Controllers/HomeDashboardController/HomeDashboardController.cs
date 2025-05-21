@@ -31,6 +31,44 @@ namespace WebBanHang.Controllers.HomeDashboardController
             //    .Include(c => c.IdsanPhamNavigation)
             //    .Sum(c => c.SoLuong * c.IdsanPhamNavigation.GiaBan) ?? 0;
 
+            // Group categories by region using TenDacSan property from DanhMuc model
+
+            var hueCategories = _context.DanhMucs
+                .Where(d => d.TenDacSan == "Đặc sản Huế")
+                .Include(d => d.SanPhams)
+                .ToList();
+
+            var danangCategories = _context.DanhMucs
+                .Where(d => d.TenDacSan == "Đặc sản Đà Nẵng")
+                .Include(d => d.SanPhams)
+                .ToList();
+
+            var quangnamCategories = _context.DanhMucs
+                .Where(d => d.TenDacSan == "Đặc sản Quảng Nam")
+                .Include(d => d.SanPhams)
+                .ToList();
+
+            // For each region, get category names and product counts
+            ViewBag.HueLabels = hueCategories.Select(c => c.TenDanhMuc).ToList();
+            ViewBag.HueValues = hueCategories.Select(c => c.SanPhams.Count).ToList();
+
+            ViewBag.DanangLabels = danangCategories.Select(c => c.TenDanhMuc).ToList();
+            ViewBag.DanangValues = danangCategories.Select(c => c.SanPhams.Count).ToList();
+
+            ViewBag.QuangNamLabels = quangnamCategories.Select(c => c.TenDanhMuc).ToList();
+            ViewBag.QuangNamValues = quangnamCategories.Select(c => c.SanPhams.Count).ToList();
+
+            // Tính tổng số lượng sản phẩm trong tất cả các đơn hàng
+            ViewBag.DanangProducts = danangCategories.Select(c =>
+    c.SanPhams.Select(sp => new { sp.TenSanPham, sp.SoLuongTon }).ToList()
+).ToList();
+ViewBag.HueProducts = hueCategories.Select(c => 
+    c.SanPhams.Select(sp => new { sp.TenSanPham, sp.SoLuongTon }).ToList()
+).ToList();
+
+ViewBag.QuangNamProducts = quangnamCategories.Select(c => 
+    c.SanPhams.Select(sp => new { sp.TenSanPham, sp.SoLuongTon }).ToList()
+).ToList();
             // Tính tổng doanh thu từ tất cả các đơn hàng
             decimal doanhThu = _context.DonHangs
                 .Include(d => d.ChiTietDonHangs)

@@ -9,7 +9,18 @@
     var catLabels = ViewBag.CategoryLabels as List<string>;
     var catValues = ViewBag.CategoryValues as List<int>;
 }
+@{
+    var hueLabels = ViewBag.HueLabels as List<string>;
+    var hueValues = ViewBag.HueValues as List<int>;
+    var danangLabels = ViewBag.DanangLabels as List<string>;
+    var danangValues = ViewBag.DanangValues as List<int>;
+    var quangnamLabels = ViewBag.QuangNamLabels as List<string>;
+    var quangnamValues = ViewBag.QuangNamValues as List<int>;
+}
+
 @using System.Text.Json
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+
 <!-- header -->
 <div class="top-row bg-white shadow-sm" style="display: flex; align-items: center; justify-content: space-between; padding: 10px;">
     <div class="d-flex align-items-center">
@@ -52,7 +63,7 @@
                 <small class="text-muted">Quản trị viên</small>
             </div>
         </div>
-        <a id="logout" href ="" class="btn btn-outline-danger btn-sm ms-3">
+        <a id="logout" href="" class="btn btn-outline-danger btn-sm ms-3">
             <i class="fa-solid fa-sign-out-alt me-1"></i> Đăng xuất
         </a>
     </div>
@@ -78,109 +89,109 @@
     </div>
 
 
-<!-- Stats Cards -->
-<div class="row mb-4">
-    <div class="col-md-3 mb-3">
-        <div class="card border-left-primary shadow h-100 py-2">
-            <div class="card-body">
-                <div class="row no-gutters align-items-center">
-                    <div class="col mr-2">
-                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                            Tổng doanh thu
+    <!-- Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Tổng doanh thu
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">@ViewBag.DoanhThu.ToString("N0") VNĐ</div>
+                            <div class="mt-2 text-success small"><i class="fa fa-arrow-up"></i> 3.48% so với tháng trước</div>
                         </div>
-                        <div class="h5 mb-0 font-weight-bold text-gray-800">@ViewBag.DoanhThu.ToString("N0") VNĐ</div>
-                        <div class="mt-2 text-success small"><i class="fa fa-arrow-up"></i> 3.48% so với tháng trước</div>
-                    </div>
-                    <div class="col-auto">
-                        <i class="fas fa-calendar fa-2x text-gray-300"></i>
+                        <div class="col-auto">
+                            <i class="fas fa-calendar fa-2x text-gray-300"></i>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <div class="col-md-3 mb-3">
-        <div class="card border-left-success shadow h-100 py-2">
-            <div class="card-body">
-                <div class="row no-gutters align-items-center">
-                    <div class="col mr-2">
-                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
-                            Số lượng đơn hàng
-                        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Số lượng đơn hàng
+                            </div>
                             <div class="h5 mb-0 font-weight-bold text-gray-800">@ViewBag.SoLuongDonHang</div>
-                        <div class="mt-2 text-success small"><i class="fa fa-arrow-up"></i> 12% so với tháng trước</div>
-                    </div>
-                    <div class="col-auto">
-                        <i class="fas fa-shopping-bag fa-2x text-gray-300"></i>
+                            <div class="mt-2 text-success small"><i class="fa fa-arrow-up"></i> 12% so với tháng trước</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-shopping-bag fa-2x text-gray-300"></i>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <div class="col-md-3 mb-3">
-        <div class="card border-left-info shadow h-100 py-2">
-            <div class="card-body">
-                <div class="row no-gutters align-items-center">
-                    <div class="col mr-2">
-                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
-                            Số lượng khách hàng
-                        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                Số lượng khách hàng
+                            </div>
                             <div class="h5 mb-0 font-weight-bold text-gray-800">@ViewBag.SoLuongKhachHang</div>
-                        <div class="mt-2 text-success small"><i class="fa fa-arrow-up"></i> 5% so với tháng trước</div>
-                    </div>
-                    <div class="col-auto">
-                        <i class="fas fa-users fa-2x text-gray-300"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-md-3 mb-3">
-        <div class="card border-left-warning shadow h-100 py-2">
-            <div class="card-body">
-                <div class="row no-gutters align-items-center">
-                    <div class="col mr-2">
-                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
-                            Số lượng sản phẩm
+                            <div class="mt-2 text-success small"><i class="fa fa-arrow-up"></i> 5% so với tháng trước</div>
                         </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">@ViewBag.SoLuongSanPham</div>
-                        <div class="mt-2 text-danger small"><i class="fa fa-arrow-down"></i> 2% so với tháng trước</div>
+                        <div class="col-auto">
+                            <i class="fas fa-users fa-2x text-gray-300"></i>
+                        </div>
                     </div>
-                    <div class="col-auto">
-                        <i class="fas fa-box fa-2x text-gray-300"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 mb-3">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                Số lượng sản phẩm
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">@ViewBag.SoLuongSanPham</div>
+                            <div class="mt-2 text-danger small"><i class="fa fa-arrow-down"></i> 2% so với tháng trước</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-box fa-2x text-gray-300"></i>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
 
-<!-- Charts Row -->
-<div class="row mb-4">
-    <div class="col-lg-8 mb-4">
-        <div class="card shadow mb-4">
-            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                <h6 class="m-0 font-weight-bold text-primary">Biểu đồ doanh thu</h6>
-                <div class="dropdown no-arrow">
-                    <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
-                    </a>
-                    <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in" aria-labelledby="dropdownMenuLink">
-                        <div class="dropdown-header">Tùy chọn biểu đồ:</div>
-                        <a class="dropdown-item" href="#">Theo tuần</a>
-                        <a class="dropdown-item" href="#">Theo tháng</a>
-                        <a class="dropdown-item" href="#">Theo quý</a>
+    <!-- Charts Row -->
+    <div class="row mb-4">
+        <div class="col-lg-8 mb-4">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">Biểu đồ doanh thu</h6>
+                    <div class="dropdown no-arrow">
+                        <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in" aria-labelledby="dropdownMenuLink">
+                            <div class="dropdown-header">Tùy chọn biểu đồ:</div>
+                            <a class="dropdown-item" href="#">Theo tuần</a>
+                            <a class="dropdown-item" href="#">Theo tháng</a>
+                            <a class="dropdown-item" href="#">Theo quý</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="chart-area">
+                        <canvas id="revenueChart"></canvas>
                     </div>
                 </div>
             </div>
-            <div class="card-body">
-                <div class="chart-area">
-                    <canvas id="revenueChart"></canvas>
-                </div>
-            </div>
-        </div>
             <div class="card shadow mb-4">
                 <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
                     <h6 class="m-0 font-weight-bold text-primary">Biểu đồ top 5 sản phẩn bán chạy nhất</h6>
@@ -202,222 +213,366 @@
                     </div>
                 </div>
             </div>
-    </div>
+        </div>
 
-    <div class="col-lg-4 mb-4">
-        <div class="card shadow mb-4">
-            <div class="card-header py-3">
-                <h6 class="m-0 font-weight-bold text-primary">Phân bổ sản phẩm theo danh mục</h6>
-            </div>
-            <div class="card-body">
-                <div class="chart-pie pt-4">
-                    <canvas id="categoryChart"></canvas>
+        <div class="col-lg-4 mb-4">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Phân bổ sản phẩm theo danh mục</h6>
                 </div>
-                    <div id="categoryLegend" class="mt-4 text-center small" >
-                        
+                <div class="card-body">
+                    <!-- Tab navigation -->
+                    <ul class="nav nav-tabs mb-3" id="regionTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <a class="nav-link active" id="hue-tab" data-toggle="tab" href="#hue" role="tab" aria-controls="hue" aria-selected="true">Huế</a>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <a class="nav-link" id="danang-tab" data-toggle="tab" href="#danang" role="tab" aria-controls="danang" aria-selected="false">Đà Nẵng</a>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <a class="nav-link" id="quangnam-tab" data-toggle="tab" href="#quangnam" role="tab" aria-controls="quangnam" aria-selected="false">Quảng Nam</a>
+                        </li>
+                    </ul>
+
+                    <!-- Tab content -->
+                    <div class="tab-content" id="regionTabsContent">
+                        <div class="tab-pane fade show active" id="hue" role="tabpanel" aria-labelledby="hue-tab">
+                            <div class="chart-pie pt-2">
+                                <canvas id="categoryChartHue"></canvas>
+                            </div>
+                            <div id="categoryLegendHue" class="mt-4 text-center small"></div>
+                        </div>
+                        <div class="tab-pane fade" id="danang" role="tabpanel" aria-labelledby="danang-tab">
+                            <div class="chart-pie pt-2">
+                                <canvas id="categoryChartDanang"></canvas>
+                            </div>
+                            <div id="categoryLegendDanang" class="mt-4 text-center small"></div>
+                        </div>
+                        <div class="tab-pane fade" id="quangnam" role="tabpanel" aria-labelledby="quangnam-tab">
+                            <div class="chart-pie pt-2">
+                                <canvas id="categoryChartQuangNam"></canvas>
+                            </div>
+                            <div id="categoryLegendQuangNam" class="mt-4 text-center small"></div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
 
-<!-- Recent Orders Table -->
-<div class="card shadow mb-4">
-    <div class="card-header py-3 d-flex justify-content-between align-items-center">
-        <h6 class="m-0 font-weight-bold text-primary">Đơn hàng gần đây</h6>
+    <!-- Recent Orders Table -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 d-flex justify-content-between align-items-center">
+            <h6 class="m-0 font-weight-bold text-primary">Đơn hàng gần đây</h6>
             <a asp-controller="OrderManagerment" asp-action="OrderManagerment" class="btn btn-sm btn-success">Xem tất cả</a>
-    </div>
-    <div class="card-body">
-        <div class="table-responsive">
-            <table class="table table-bordered" width="100%" cellspacing="0">
-                <thead>
-                <tr>
-                    <th>Mã đơn</th>
-                    <th>Khách hàng</th>
-                    <th>Sản phẩm</th>
-                    <th>Tổng tiền</th>
-                    <th>Ngày đặt</th>
-                    <th>Trạng thái</th>
-                </tr>
-                </thead>
-                <tbody>
-                @foreach (var dh in ViewBag.DonHangGanDay)
-                {
-                    <tr>
-                        <td>@dh.MaDon</td>
-                        <td>@dh.KhachHang</td>
-                        <td>@dh.SanPham</td>
-                        <td>@String.Format("{0:N0}", dh.TongTien) VNĐ</td>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered" width="100%" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th>Mã đơn</th>
+                            <th>Khách hàng</th>
+                            <th>Sản phẩm</th>
+                            <th>Tổng tiền</th>
+                            <th>Ngày đặt</th>
+                            <th>Trạng thái</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var dh in ViewBag.DonHangGanDay)
+                        {
+                            <tr>
+                                <td>@dh.MaDon</td>
+                                <td>@dh.KhachHang</td>
+                                <td>@dh.SanPham</td>
+                                <td>@String.Format("{0:N0}", dh.TongTien) VNĐ</td>
                                 <td>@dh.NgayDat.ToString("dd/MM/yyyy")</td>
-                        <td>
-                            @{
-                                var status = dh.TrangThai?.ToString();
-                                string badge = status switch
-                                {
-                                    "Đã giao hàng" => "success",
-                                    "Đang giao hàng" => "warning",
-                                    "Đã đặt hàng" => "info",
-                                    "Đang xử lý" => "primary",
-                                    "Đã hủy" => "danger",
-                                    _ => "secondary"
-                                };
-                            }
-                            <span class="badge badge-@badge">@status</span>
-                        </td>
-                    </tr>
-                }
-                </tbody>
-            </table>
+                                <td>
+                                    @{
+                                        var status = dh.TrangThai?.ToString();
+                                        string badge = status switch
+                                        {
+                                            "Đã giao hàng" => "success",
+                                            "Đang giao hàng" => "warning",
+                                            "Đã đặt hàng" => "info",
+                                            "Đang xử lý" => "primary",
+                                            "Đã hủy" => "danger",
+                                            _ => "secondary"
+                                        };
+                                    }
+                                    <span class="badge badge-@badge">@status</span>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
-</div>
 </article>
 
 <script src="/js/home.js"></script>
 
 <script>
-     function getColorForCategory(index) {
-        var colors = [
-            '#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#9e9e9e',
-            '#ff6347', '#20b2aa', '#ff1493', '#32cd32', '#ffa07a', '#8a2be2',
-            '#ff8c00', '#9932cc', '#8b0000'
-        ];
-        return colors[index % colors.length];
-    }
-    //Biểu đồ bán chạy
-    var ctxTop5 = document.getElementById("top5productChart").getContext('2d');
-    var top5Chart = new Chart(ctxTop5, {
-        type: 'bar',
-        data: {
-            labels: @Html.Raw(Json.Serialize(ViewBag.Top5Labels)),
-            datasets: [{
-                label: "Số lượng bán",
-                data: @Html.Raw(Json.Serialize(ViewBag.Top5Values)),
-                backgroundColor: [
-                    '#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b'
-                ],
-                borderWidth: 1
-            }]
-        },
-        options: {
+    
+     // Get region data from controller
+        var hueLabels = @Html.Raw(JsonSerializer.Serialize(ViewBag.HueLabels));
+        var hueValues = @Html.Raw(JsonSerializer.Serialize(ViewBag.HueValues));
+        var danangLabels = @Html.Raw(JsonSerializer.Serialize(ViewBag.DanangLabels));
+        var danangValues = @Html.Raw(JsonSerializer.Serialize(ViewBag.DanangValues));
+        var quangnamLabels = @Html.Raw(JsonSerializer.Serialize(ViewBag.QuangNamLabels));
+        var quangnamValues = @Html.Raw(JsonSerializer.Serialize(ViewBag.QuangNamValues));
+
+        var danangProducts = @Html.Raw(JsonSerializer.Serialize(ViewBag.DanangProducts));
+    var hueProducts = @Html.Raw(JsonSerializer.Serialize(ViewBag.HueProducts));
+    var quangnamProducts = @Html.Raw(JsonSerializer.Serialize(ViewBag.QuangNamProducts));
+               
+
+         function getColorForCategory(index) {
+            var colors = [
+                '#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#9e9e9e',
+                '#ff6347', '#20b2aa', '#ff1493', '#32cd32', '#ffa07a', '#8a2be2',
+                '#ff8c00', '#9932cc', '#8b0000'
+            ];
+            return colors[index % colors.length];
+        }
+ // Create charts for each region
+        function createCategoryChart(canvasId, labels, values, products) {
+            var ctx = document.getElementById(canvasId).getContext('2d');
+            return new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: values,
+                        backgroundColor: values.map((_, i) => getColorForCategory(i)),
+                        hoverBackgroundColor: values.map((_, i) => getColorForCategory(i)),
+                        hoverBorderColor: "rgba(234, 236, 244, 1)"
+                    }]
+                },
+               options: {
             responsive: true,
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    ticks: {
-                        precision: 0
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            var idx = context.dataIndex;
+                            var danhMuc = labels[idx];
+                            var soLuong = values[idx];
+                            var spList = products[idx];
+                            if (spList && spList.length > 0) {
+        // Trả về mảng, mỗi phần tử là 1 dòng
+        var lines = [`${danhMuc}: ${soLuong} sản phẩm`];
+        lines = lines.concat(spList.map(sp => `- ${sp.TenSanPham}: ${sp.SoLuongTon}`));
+        return lines;
+    } else {
+        return [`${danhMuc}: ${soLuong} sản phẩm`, 'Không có sản phẩm'];
+    }
+                        }
+                    }
+                }
+            },
+                    cutout: '70%'
+                }
+            });
+        }
+    // Render legend function
+        function renderCategoryLegend(chartId, legendId, labels) {
+            var legendContainer = document.getElementById(legendId);
+            legendContainer.innerHTML = ""; // Clear if any
+
+            // Create a single row with flex wrap
+            //Array specifying the number of items per row
+            const itemsPerRow = [4, 3, 2, 2, 2,2];
+
+            let currentIndex = 0;
+
+            itemsPerRow.forEach(count => {
+                const rowDiv = document.createElement("div");
+                rowDiv.className = "mb-2 d-flex justify-content-center flex-wrap";
+
+                for (let i = 0; i < count && currentIndex < labels.length; i++, currentIndex++) {
+                    const color = getColorForCategory(currentIndex);
+                    const span = document.createElement("span");
+                    span.className = "mr-3";
+                    span.innerHTML = `<i class="fas fa-circle" style="color: ${color}"></i> ${labels[currentIndex]}`;
+                    rowDiv.appendChild(span);
+                }
+
+                legendContainer.appendChild(rowDiv);
+            });
+        }
+
+
+
+
+       
+
+        // Initialize all three charts
+        @* var categoryChartHue = createCategoryChart('categoryChartHue', hueLabels, hueValues);
+        renderCategoryLegend(categoryChartHue, 'categoryLegendHue', hueLabels);
+
+        var categoryChartDanang = createCategoryChart('categoryChartDanang', danangLabels, danangValues);
+        renderCategoryLegend(categoryChartDanang, 'categoryLegendDanang', danangLabels);
+
+        var categoryChartQuangNam = createCategoryChart('categoryChartQuangNam', quangnamLabels, quangnamValues);
+        renderCategoryLegend(categoryChartQuangNam, 'categoryLegendQuangNam', quangnamLabels); *@
+var categoryChartDanang = createCategoryChart('categoryChartDanang', danangLabels, danangValues, danangProducts);
+renderCategoryLegend(categoryChartDanang, 'categoryLegendDanang', danangLabels);
+
+var categoryChartHue = createCategoryChart('categoryChartHue', hueLabels, hueValues, hueProducts);
+renderCategoryLegend(categoryChartHue, 'categoryLegendHue', hueLabels);
+
+var categoryChartQuangNam = createCategoryChart('categoryChartQuangNam', quangnamLabels, quangnamValues, quangnamProducts);
+renderCategoryLegend(categoryChartQuangNam, 'categoryLegendQuangNam', quangnamLabels);
+
+
+
+        // Add tab switch event to properly render charts
+        $('#regionTabs a').on('shown.bs.tab', function (e) {
+            // Force resize to correctly render the chart in the newly visible tab
+            window.dispatchEvent(new Event('resize'));
+        });
+
+        //Biểu đồ bán chạy
+        var ctxTop5 = document.getElementById("top5productChart").getContext('2d');
+        var top5Chart = new Chart(ctxTop5, {
+            type: 'bar',
+            data: {
+                labels: @Html.Raw(Json.Serialize(ViewBag.Top5Labels)),
+                datasets: [{
+                    label: "Số lượng bán",
+                    data: @Html.Raw(Json.Serialize(ViewBag.Top5Values)),
+                    backgroundColor: [
+                        '#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            precision: 0
+                        }
                     }
                 }
             }
-        }
-    });
+        });
 
-    // Biểu đồ doanh thu
-    var revenueCtx = document.getElementById('revenueChart').getContext('2d');
-    var revenueChart = new Chart(revenueCtx, {
-        type: 'line',
-        data: {
-           labels: @Html.Raw(JsonSerializer.Serialize(labels)),
-            datasets: [{
-                label: 'Doanh thu (triệu VNĐ)',
-                data: @Html.Raw(JsonSerializer.Serialize(values)),
-                backgroundColor: 'rgba(78, 115, 223, 0.05)',
-                borderColor: 'rgba(78, 115, 223, 1)',
-                borderWidth: 2,
-                pointBackgroundColor: 'rgba(78, 115, 223, 1)',
-                pointBorderColor: '#fff',
-                pointHoverRadius: 5,
-                pointHoverBackgroundColor: 'rgba(78, 115, 223, 1)',
-                pointHoverBorderColor: '#fff',
-                pointHitRadius: 10,
-                pointBorderWidth: 2,
-                tension: 0.3
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    ticks: {
-                        callback: function(value) {
-                            return value.toLocaleString() + ' triệu';
+        // Biểu đồ doanh thu
+        var revenueCtx = document.getElementById('revenueChart').getContext('2d');
+        var revenueChart = new Chart(revenueCtx, {
+            type: 'line',
+            data: {
+               labels: @Html.Raw(JsonSerializer.Serialize(labels)),
+                datasets: [{
+                    label: 'Doanh thu (triệu VNĐ)',
+                    data: @Html.Raw(JsonSerializer.Serialize(values)),
+                    backgroundColor: 'rgba(78, 115, 223, 0.05)',
+                    borderColor: 'rgba(78, 115, 223, 1)',
+                    borderWidth: 2,
+                    pointBackgroundColor: 'rgba(78, 115, 223, 1)',
+                    pointBorderColor: '#fff',
+                    pointHoverRadius: 5,
+                    pointHoverBackgroundColor: 'rgba(78, 115, 223, 1)',
+                    pointHoverBorderColor: '#fff',
+                    pointHitRadius: 10,
+                    pointBorderWidth: 2,
+                    tension: 0.3
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return value.toLocaleString() + ' triệu';
+                            }
+                        },
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.05)'
                         }
                     },
-                    grid: {
-                        color: 'rgba(0, 0, 0, 0.05)'
+                    x: {
+                        grid: {
+                            display: false
+                        }
                     }
                 },
-                x: {
-                    grid: {
+                plugins: {
+                    legend: {
                         display: false
                     }
                 }
-            },
-            plugins: {
-                legend: {
-                    display: false
-                }
             }
-        }
-    });
-    var catLabels = @Html.Raw(JsonSerializer.Serialize(catLabels));
-    var catValues = @Html.Raw(JsonSerializer.Serialize(catValues));
-    // Biểu đồ phân bổ danh mục
-    var categoryCtx = document.getElementById('categoryChart').getContext('2d');
-    var categoryChart = new Chart(categoryCtx, {
-        type: 'doughnut',
-        data: {
-            labels: catLabels,
-            datasets: [{
-                data: catValues,
-                // backgroundColor: ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#9e9e9e',
-                // '#ff6347', '#20b2aa', '#ff1493', '#32cd32', '#ffa07a', '#8a2be2',
-                // '#ff8c00', '#9932cc', '#8b0000'],
-                // hoverBackgroundColor: ['#2e59d9', '#17a673', '#2c9faf', '#dda20a', '#c0392b', '#bdc3c7',
-                // '#ff4500', '#2e8b57', '#c71585', '#228b22', '#ff7f50', '#7a5dc7', 
-                // '#ff4500', '#800080', '#ff0000'],
-                backgroundColor: catValues.map((_, i) => getColorForCategory(i)),
-                hoverBackgroundColor: catValues.map((_, i) => getColorForCategory(i)),
-                hoverBorderColor: "rgba(234, 236, 244, 1)"
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    display: false
-                }
-            },
-            cutout: '70%'
-        }
-    });
+        });
+        var catLabels = @Html.Raw(JsonSerializer.Serialize(catLabels));
+        var catValues = @Html.Raw(JsonSerializer.Serialize(catValues));
+        //Biểu đồ phân bổ danh mục
+        // var categoryCtx = document.getElementById('categoryChart').getContext('2d');
+        // var categoryChart = new Chart(categoryCtx, {
+        //     type: 'doughnut',
+        //     data: {
+        //         labels: catLabels,
+        //         datasets: [{
+        //             data: catValues,
+        //             backgroundColor: ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#9e9e9e',
+        //             '#ff6347', '#20b2aa', '#ff1493', '#32cd32', '#ffa07a', '#8a2be2',
+        //             '#ff8c00', '#9932cc', '#8b0000'],
+        //             hoverBackgroundColor: ['#2e59d9', '#17a673', '#2c9faf', '#dda20a', '#c0392b', '#bdc3c7',
+        //             '#ff4500', '#2e8b57', '#c71585', '#228b22', '#ff7f50', '#7a5dc7',
+        //             '#ff4500', '#800080', '#ff0000'],
+        //             backgroundColor: catValues.map((_, i) => getColorForCategory(i)),
+        //             hoverBackgroundColor: catValues.map((_, i) => getColorForCategory(i)),
+        //             hoverBorderColor: "rgba(234, 236, 244, 1)"
+        //         }]
+        //     },
+        //     options: {
+        //         responsive: true,
+        //         maintainAspectRatio: false,
+        //         plugins: {
+        //             legend: {
+        //                 display: false
+        //             }
+        //         },
+        //         cutout: '70%'
+        //     }
+        // });
 
-    // Render legend dưới dạng span
-    var legendContainer = document.getElementById("categoryLegend");
-    legendContainer.innerHTML = ""; // Clear if any
+        //Render legend dưới dạng span
+           // function renderCategoryLegend(canvasId, legendContainerId, labels) {
+           //  var legendContainer = document.getElementById(legendContainerId);
+           //  legendContainer.innerHTML = ""; Clear any existing content
 
-    
-    // Mảng chỉ định số mục mỗi dòng
-    const itemsPerRow = [4, 3, 2, 2, 2];
+            // Array specifying the number of items per row
+            // const itemsPerRow = [4, 3, 2, 2, 2];
 
-    let currentIndex = 0;
+            // let currentIndex = 0;
 
-    itemsPerRow.forEach(count => {
-        const rowDiv = document.createElement("div");
-        rowDiv.className = "mb-2 d-flex justify-content-center flex-wrap";
+            // itemsPerRow.forEach(count => {
+            //     const rowDiv = document.createElement("div");
+            //     rowDiv.className = "mb-2 d-flex justify-content-center flex-wrap";
 
-        for (let i = 0; i < count && currentIndex < catLabels.length; i++, currentIndex++) {
-            const color = getColorForCategory(currentIndex);
-            const span = document.createElement("span");
-            span.className = "mr-3";
-            span.innerHTML = `<i class="fas fa-circle" style="color: ${color}"></i> ${catLabels[currentIndex]}`;
-            rowDiv.appendChild(span);
-        }
+            //     for (let i = 0; i < count && currentIndex < labels.length; i++, currentIndex++) {
+            //         const color = getColorForCategory(currentIndex);
+            //         const span = document.createElement("span");
+            //         span.className = "mr-3";
+            //         span.innerHTML = `<i class="fas fa-circle" style="color: ${color}"></i> ${labels[currentIndex]}`;
+            //         rowDiv.appendChild(span);
+            //     }
 
-        legendContainer.appendChild(rowDiv);
-    });
+            //     legendContainer.appendChild(rowDiv);
+            // });
+        // }
+     
 </script>
 

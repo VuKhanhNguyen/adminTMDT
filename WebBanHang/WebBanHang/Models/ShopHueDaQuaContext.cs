@@ -140,6 +140,11 @@ public partial class ShopHueDaQuaContext : DbContext
             entity.Property(e => e.TenDanhMuc)
                 .HasMaxLength(200)
                 .HasColumnName("tenDanhMuc");
+            entity.Property(e => e.HinhAnh)
+                .HasColumnName("hinhAnh");
+            entity.Property(e => e.TenDacSan)
+                .HasMaxLength(50)
+                .HasColumnName("tenDacSan");
 
             entity.HasMany(d => d.Idblogs).WithMany(p => p.IddanhMucs)
                 .UsingEntity<Dictionary<string, object>>(
@@ -175,7 +180,7 @@ public partial class ShopHueDaQuaContext : DbContext
                 .HasColumnType("decimal(18, 2)")
                 .HasColumnName("tongTien");
             entity.Property(e => e.TrangThai).HasMaxLength(255);
-
+            entity.Property(e=>e.DiaChi).HasMaxLength(255).HasColumnName("diaChi");
             entity.HasOne(d => d.IdkhachHangNavigation).WithMany(p => p.DonHangs)
                 .HasForeignKey(d => d.IdkhachHang)
                 .HasConstraintName("FK__DonHang__IDKhach__4E88ABD4");

@@ -10,6 +10,8 @@ public partial class DanhMuc
     public string? TenDanhMuc { get; set; }
 
     public string? MoTa { get; set; }
+    public string? HinhAnh { get; set; }
+    public string? TenDacSan { get; set; }
 
     public virtual ICollection<Blog> Idblogs { get; set; } = new List<Blog>();
     public virtual ICollection<SanPham> SanPhams { get; set; } = new List<SanPham>();

@@ -29,6 +29,9 @@ CREATE TABLE DanhMuc (
     tenDanhMuc nvarchar(200),
     moTa nvarchar(max)
 );
+alter table DanhMuc
+add tenDacSan nvarchar(50),
+add hinhAnh 
 
 CREATE TABLE SanPham (
     IDSanPham varchar(20) PRIMARY KEY,
@@ -100,6 +103,9 @@ CREATE TABLE DonHang (
     FOREIGN KEY (IDKhachHang) REFERENCES KhachHang(IDKhachHang),
     FOREIGN KEY (IDThanhToan) REFERENCES ThanhToan(IDThanhToan)
 );
+
+alter table DonHang
+add diaChi nvarchar(255);
 
 
 CREATE TABLE ChiTietDonHang (
@@ -591,7 +597,7 @@ VALUES
 ('SP034', N'Nhang trầm', 6, 110000.00, 90, 
 N'Giới thiệu chung: Nhang trầm Đà Nẵng cũng được sản xuất từ bột trầm hương, chú trọng vào chất lượng và mùi hương tự nhiên. Có thể có các loại nhang không tăm hoặc nhang khoanh.
 Thành phần: Bột trầm hương, keo tự nhiên.
-Chất liệu: Que nhang, nhang khoanh, nhang nụ.
+Chất liệu: Que nhang, nhang khoanh, nhang nụ.tre
 Khối lượng: Thường đóng hộp.
 Công dụng: Thờ cúng, yoga, thiền định, tạo không gian thư thái.
 Phù hợp với: Gia đình, người thực hành tâm linh, các không gian cần sự tĩnh lặng.
@@ -1629,3 +1635,4 @@ VALUES (5, '2025-04-27', N'Đã hủy', 290000.00, 2);
 INSERT INTO ChiTietDonHang (IDDonHang, IDSanPham, soLuong) VALUES (25, 'SP076', 2);
 INSERT INTO ChiTietDonHang (IDDonHang, IDSanPham, soLuong) VALUES (25, 'SP008', 3);
 GO
+

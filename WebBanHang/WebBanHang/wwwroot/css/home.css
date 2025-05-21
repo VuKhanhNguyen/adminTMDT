@@ -117,7 +117,7 @@ h1:focus {
 }
 
     .nav-item:first-of-type {
-        padding-top: 1rem;
+/*        padding-top: 1rem;*/
     }
 
     .nav-item:last-of-type {
@@ -291,3 +291,7 @@ main {
         background-color: #6AB04C !important;
         border-left: 4px solid #FFD43B;
     }
+
+
+
+

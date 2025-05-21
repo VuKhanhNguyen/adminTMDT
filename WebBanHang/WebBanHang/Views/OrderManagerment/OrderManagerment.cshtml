@@ -71,13 +71,13 @@
             <div class="form-group">
                 <label for="orderStatus">Trạng thái đơn hàng</label>
                 <select class="form-control" id="orderStatus">
-                    <option value="">Tất cả trạng thái</option>
-                    <option value="pending">Chờ xử lý</option>
-                    <option value="confirmed">Đã xác nhận</option>
-                    <option value="shipping">Đang giao hàng</option>
-                    <option value="shipping">Đã giao hàng</option>
-                    <option value="completed">Hoàn thành</option>
-                    <option value="cancelled">Đã hủy</option>
+                    <option value="">Tất cả</option>
+                    <option value="Đã đặt hàng">Đã đặt hàng</option>
+                    <option value="Đang xử lý">Đang xử lý</option>
+                    <option value="Đang giao hàng">Đang giao hàng</option>
+                    <option value="Đã giao hàng">Đã giao hàng</option>
+                    <option value="Hoàn thành">Hoàn thành</option>
+                    <option value="Đã hủy">Đã hủy</option>
                 </select>
             </div>
         </div>
@@ -215,6 +215,7 @@
                             <div class="form-group">
                                 <label for="modalOrderStatus"><strong>Trạng thái đơn hàng:</strong></label>
                                 <select class="form-control" name="TrangThai" id="modalOrderStatus">
+                                    <option value="">Tất cả</option>
                                     <option value="Đã đặt hàng">Đã đặt hàng</option>
                                     <option value="Đang xử lý">Đang xử lý</option>
                                     <option value="Đang giao hàng">Đang giao hàng</option>
@@ -467,6 +468,143 @@
         // Gán sự kiện cho nút lưu PDF
         function savePDF() {
             exportToPDF();
+        }
+
+        
+    // ...existing code...
+
+    // Sự kiện lọc theo trạng thái đơn hàng
+            $('#orderStatus').change(function () {
+            var status = $(this).val();
+            $.ajax({
+                url: '/OrderManagerment/FilterByStatus',
+                type: 'GET',
+                data: { status: status, page: 1, pageSize: 5 }, // reset về trang 1 khi lọc
+                success: function (data) {
+                    var orders = data.orders;
+                    var tbody = $('.table-responsive tbody').first();
+                    tbody.empty();
+                    if (orders.length === 0) {
+                        tbody.append('<tr><td colspan="7" class="text-center">Không có đơn hàng nào.</td></tr>');
+                    } else {
+                        orders.forEach(function (order) {
+                            let badgeClass = "secondary";
+                            switch (order.trangThai) {
+                                case "Đã giao hàng": badgeClass = "success"; break;
+                                case "Đang giao hàng": badgeClass = "warning"; break;
+                                case "Đã đặt hàng": badgeClass = "info"; break;
+                                case "Đang xử lý": badgeClass = "primary"; break;
+                                case "Đã hủy": badgeClass = "danger"; break;
+                            }
+                            tbody.append(`
+                                <tr>
+                                    <td>${order.iddonHang}</td>
+                                    <td>${order.khachHang || ""}</td>
+                                    <td>${order.ngayLap}</td>
+                                    <td>${order.tongTien}</td>
+                                    <td>${order.thanhToan || ""}</td>
+                                    <td><span class="badge badge-${badgeClass}">${order.trangThai}</span></td>
+                                    <td>
+                                        <button class="btn btn-sm btn-info view-details-btn" data-id="${order.iddonHang}" data-toggle="modal" data-target="#orderDetailModal" title="Chi tiết">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-danger" title="Hủy">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            `);
+                        });
+                    }
+
+                    // Cập nhật tổng số đơn hàng và phân trang
+                    $('.text-muted').text(`Hiển thị 1 - ${orders.length} trong tổng số ${data.totalOrders} đơn hàng`);
+                    var pagination = '';
+                    for (let i = 1; i <= data.totalPages; i++) {
+                        pagination += `<li class="page-item${i === data.currentPage ? ' active' : ''}">
+                            <a class="page-link" href="#" onclick="filterPage(${i});return false;">${i}</a>
+                        </li>`;
+                    }
+                    $('.pagination').html(pagination);
+                }
+            });
+        });
+
+        // Hàm chuyển trang khi lọc
+        function filterPage(page) {
+            var status = $('#orderStatus').val();
+            $.ajax({
+                url: '/OrderManagerment/FilterByStatus',
+                type: 'GET',
+                data: { status: status, page: page, pageSize: 5 },
+                success: function (data) {
+                    // ... giống như ở trên ...
+                }
+            });
+        }
+                $('#customerSearch').on('keypress', function (e) {
+            if (e.which === 13) { // Enter
+                searchOrders();
+            }
+        });
+        $('#customerSearch').siblings('.input-group-append').find('button').click(function () {
+            searchOrders();
+        });
+
+        function searchOrders(page = 1) {
+            var keyword = $('#customerSearch').val();
+            var status = $('#orderStatus').val();
+            $.ajax({
+                url: '/OrderManagerment/SearchOrders',
+                type: 'GET',
+                data: { keyword: keyword, status: status, page: page, pageSize: 5 },
+                success: function (data) {
+                    var orders = data.orders;
+                    var tbody = $('.table-responsive tbody').first();
+                    tbody.empty();
+                    if (orders.length === 0) {
+                        tbody.append('<tr><td colspan="7" class="text-center">Không có đơn hàng nào.</td></tr>');
+                    } else {
+                        orders.forEach(function (order) {
+                            let badgeClass = "secondary";
+                            switch (order.trangThai) {
+                                case "Đã giao hàng": badgeClass = "success"; break;
+                                case "Đang giao hàng": badgeClass = "warning"; break;
+                                case "Đã đặt hàng": badgeClass = "info"; break;
+                                case "Đang xử lý": badgeClass = "primary"; break;
+                                case "Đã hủy": badgeClass = "danger"; break;
+                            }
+                            tbody.append(`
+                                <tr>
+                                    <td>${order.iddonHang}</td>
+                                    <td>${order.khachHang || ""}</td>
+                                    <td>${order.ngayLap}</td>
+                                    <td>${order.tongTien}</td>
+                                    <td>${order.thanhToan || ""}</td>
+                                    <td><span class="badge badge-${badgeClass}">${order.trangThai}</span></td>
+                                    <td>
+                                        <button class="btn btn-sm btn-info view-details-btn" data-id="${order.iddonHang}" data-toggle="modal" data-target="#orderDetailModal" title="Chi tiết">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-danger" title="Hủy">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            `);
+                        });
+                    }
+                    // Cập nhật tổng số đơn hàng và phân trang
+                    $('.text-muted').text(`Hiển thị 1 - ${orders.length} trong tổng số ${data.totalOrders} đơn hàng`);
+                    var pagination = '';
+                    for (let i = 1; i <= data.totalPages; i++) {
+                        pagination += `<li class="page-item${i === data.currentPage ? ' active' : ''}">
+                            <a class="page-link" href="#" onclick="searchOrders(${i});return false;">${i}</a>
+                        </li>`;
+                    }
+                    $('.pagination').html(pagination);
+                }
+            });
         }
     </script>
 }

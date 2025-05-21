@@ -80,7 +80,8 @@ namespace WebBanHang.Controllers.OrderManagermentController
                 tongTien = order.TongTien?.ToString("N0") + "đ" ?? "0đ",
                 thanhToan = order.IdthanhToanNavigation?.TenThanhToan,
                 trangThai = order.TrangThai,
-                chiTiet = order.ChiTietDonHangs.Select(ct => new {
+                chiTiet = order.ChiTietDonHangs.Select(ct => new
+                {
                     tenSanPham = ct.IdsanPhamNavigation?.TenSanPham,
                     soLuong = ct.SoLuong,
                     donGia = ct.IdsanPhamNavigation?.GiaBan ?? 0,
@@ -104,5 +105,72 @@ namespace WebBanHang.Controllers.OrderManagermentController
             return RedirectToAction("OrderManagerment");
         }
 
+
+        [HttpGet]
+        public IActionResult FilterByStatus(string status, int page = 1, int pageSize = 5)
+        {
+            var orders = _context.DonHangs
+                .Include(d => d.IdkhachHangNavigation)
+                .Include(d => d.IdthanhToanNavigation)
+                .AsQueryable();
+
+            if (!string.IsNullOrEmpty(status))
+            {
+                orders = orders.Where(d => d.TrangThai == status);
+            }
+
+            var totalOrders = orders.Count();
+            var totalPages = (int)Math.Ceiling((double)totalOrders / pageSize);
+
+            var pagedOrders = orders
+                .OrderByDescending(d => d.NgayLap)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .Select(order => new {
+                    iddonHang = order.IddonHang,
+                    khachHang = order.IdkhachHangNavigation.HoTen,
+                    ngayLap = order.NgayLap.HasValue ? order.NgayLap.Value.ToString("dd/MM/yyyy") : "",
+                    tongTien = order.TongTien.HasValue ? order.TongTien.Value.ToString("N0") + "đ" : "0đ",
+                    thanhToan = order.IdthanhToanNavigation.TenThanhToan,
+                    trangThai = order.TrangThai
+                }).ToList();
+
+            return Json(new { orders = pagedOrders, totalOrders, totalPages, currentPage = page });
+        }
+        [HttpGet]
+        public IActionResult SearchOrders(string keyword, string status = "", int page = 1, int pageSize = 5)
+        {
+            var orders = _context.DonHangs
+                .Include(d => d.IdkhachHangNavigation)
+                .Include(d => d.IdthanhToanNavigation)
+                .AsQueryable();
+
+            if (!string.IsNullOrEmpty(status))
+                orders = orders.Where(d => d.TrangThai == status);
+
+            if (!string.IsNullOrEmpty(keyword))
+                orders = orders.Where(d =>
+                    d.IddonHang.ToString().Contains(keyword) ||
+                    d.IdkhachHangNavigation.HoTen.Contains(keyword)
+                );
+
+            var totalOrders = orders.Count();
+            var totalPages = (int)Math.Ceiling((double)totalOrders / pageSize);
+
+            var pagedOrders = orders
+                .OrderByDescending(d => d.NgayLap)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .Select(order => new {
+                    iddonHang = order.IddonHang,
+                    khachHang = order.IdkhachHangNavigation.HoTen,
+                    ngayLap = order.NgayLap.HasValue ? order.NgayLap.Value.ToString("dd/MM/yyyy") : "",
+                    tongTien = order.TongTien.HasValue ? order.TongTien.Value.ToString("N0") + "đ" : "0đ",
+                    thanhToan = order.IdthanhToanNavigation.TenThanhToan,
+                    trangThai = order.TrangThai
+                }).ToList();
+
+            return Json(new { orders = pagedOrders, totalOrders, totalPages, currentPage = page });
+        }
     }
 }
