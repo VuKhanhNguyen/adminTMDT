@@ -1,0 +1,117 @@
+﻿/* ===== BỐ CỤC CHUNG ===== */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 20px;
+    background-color: #f9f9f9;
+}
+
+h2 {
+    margin-bottom: 20px;
+    color: #333;
+}
+
+/* ===== BẢNG SẢN PHẨM ===== */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: white;
+    box-shadow: 0 0 5px rgba(0,0,0,0.1);
+}
+
+    table thead {
+        background-color: #007bff;
+        color: white;
+    }
+
+    table th, table td {
+        padding: 12px 15px;
+        text-align: left;
+        border-bottom: 1px solid #ddd;
+    }
+
+    table tbody tr:hover {
+        background-color: #f1f1f1;
+    }
+
+/* ===== FORM INPUT ===== */
+form .form-group {
+    margin-bottom: 15px;
+}
+
+form label {
+    font-weight: 500;
+    display: block;
+    margin-bottom: 5px;
+    color: #444;
+}
+
+form input[type="text"],
+form input[type="number"],
+form textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    background-color: #fff;
+}
+
+form textarea {
+    resize: vertical;
+}
+
+/* ===== NÚT HÀNH ĐỘNG ===== */
+.btn {
+    padding: 8px 16px;
+    border-radius: 5px;
+    font-weight: 500;
+    text-decoration: none;
+    color: white;
+    margin-right: 5px;
+}
+
+.btn-success {
+    background-color: #28a745;
+}
+
+.btn-primary {
+    background-color: #007bff;
+}
+
+.btn-danger {
+    background-color: #dc3545;
+}
+
+.btn-secondary {
+    background-color: #6c757d;
+}
+
+.btn:hover {
+    opacity: 0.9;
+}
+
+/* ===== Responsive Table (Tuỳ chọn) ===== */
+@media screen and (max-width: 768px) {
+    table, thead, tbody, th, td, tr {
+        display: block;
+    }
+
+    thead {
+        display: none;
+    }
+
+    td {
+        position: relative;
+        padding-left: 50%;
+        border: none;
+        border-bottom: 1px solid #eee;
+    }
+
+        td::before {
+            position: absolute;
+            left: 10px;
+            top: 10px;
+            font-weight: bold;
+            color: #888;
+            content: attr(data-label);
+        }
+}

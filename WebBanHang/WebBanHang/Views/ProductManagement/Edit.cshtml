@@ -1,0 +1,53 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Danh sách sản phẩm</title>
+    <link rel="stylesheet" href="~/css/style.css" asp-append-version="true">
+
+</head>
+<body>
+
+@model SanPham
+
+<h2>Chỉnh sửa sản phẩm</h2>
+
+<form asp-action="Edit">
+    <input type="hidden" asp-for="IdsanPham" />
+    <div class="form-group">
+        <label>Tên sản phẩm</label>
+        <input asp-for="TenSanPham" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label>ID Danh mục</label>
+        <input asp-for="IddanhMuc" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label>Giá bán</label>
+        <input asp-for="GiaBan" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label>Số lượng tồn</label>
+        <input asp-for="SoLuongTon" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label>Đơn vị tính</label>
+        <input asp-for="DonViTinh" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label>Xuất xứ</label>
+        <input asp-for="XuatXu" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label>Mô tả</label>
+        <textarea asp-for="MoTa" class="form-control"></textarea>
+    </div>
+    <button type="submit" class="btn btn-primary">Lưu</button>
+    <a asp-action="Manage" class="btn btn-secondary">Hủy</a>
+</form>
+</body>
+</html>

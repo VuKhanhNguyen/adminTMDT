@@ -99,8 +99,9 @@ namespace WebBanHang.Controllers.OrderManagermentController
             var order = _context.DonHangs.Find(iddonHang);
             if (order == null) return NotFound();
 
-            order.TrangThai = trangThai;
-            _context.SaveChanges();
+            _context.Database.ExecuteSqlRaw(
+                "UPDATE DonHang SET TrangThai = @p0 WHERE IDDonHang = @p1",
+                trangThai, iddonHang);
 
             return RedirectToAction("OrderManagerment");
         }
@@ -249,11 +250,10 @@ namespace WebBanHang.Controllers.OrderManagermentController
             // Xóa chi tiết đơn hàng trước
             _context.ChiTietDonHangs.RemoveRange(order.ChiTietDonHangs);
 
-            // Xóa đơn hàng
-            _context.DonHangs.Remove(order);
+            _context.Database.ExecuteSqlRaw("DELETE FROM ChiTietDonHang WHERE IDDonHang = {0}", id);
 
-            _context.SaveChanges();
-                
+            // Xóa đơn hàng
+            _context.Database.ExecuteSqlRaw("DELETE FROM DonHang WHERE IDDonHang = {0}", id);
             TempData["SuccessMessage"] = "Xóa đơn hàng thành công!";
             return Json(new { success = true });
         }
