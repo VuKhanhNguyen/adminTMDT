@@ -188,6 +188,9 @@
                 </div>
                 <div class="card-body">
                     <div class="chart-area">
+                        <button id="btnBackToMonth" class="btn btn-secondary btn-sm" style="display:none; margin-bottom:10px;">
+                            Quay lại biểu đồ tháng
+                        </button>
                         <canvas id="revenueChart"></canvas>
                     </div>
                 </div>
@@ -573,6 +576,39 @@ renderCategoryLegend(categoryChartQuangNam, 'categoryLegendQuangNam', quangnamLa
             //     legendContainer.appendChild(rowDiv);
             // });
         // }
-     
+            // Lưu lại dữ liệu tháng ban đầu
+    var monthChartData = {
+        labels: @Html.Raw(JsonSerializer.Serialize(labels)),
+        values: @Html.Raw(JsonSerializer.Serialize(values))
+    };
+
+    // Sự kiện click vào point trên biểu đồ tháng
+    revenueChart.options.onClick = function (evt, elements) {
+        if (elements && elements.length > 0) {
+            var chart = elements[0];
+            var monthLabel = revenueChart.data.labels[chart.index]; // "T6"
+            var month = parseInt(monthLabel.replace("T", "")); // 6
+
+            fetch(`/HomeDashboard/GetDoanhThuNgayTheoThang?month=${month}`)
+                .then(response => response.json())  
+                .then(data => {
+                    revenueChart.data.labels = data.labels;
+                    revenueChart.data.datasets[0].data = data.values;
+                    revenueChart.data.datasets[0].label = `Doanh thu từng ngày (triệu VNĐ) - Tháng ${month}`;
+                    revenueChart.update();
+                    document.getElementById('btnBackToMonth').style.display = 'inline-block';
+                });
+        }
+    };
+
+    // Sự kiện click nút quay lại
+    document.getElementById('btnBackToMonth').addEventListener('click', function () {
+        revenueChart.data.labels = monthChartData.labels;
+        revenueChart.data.datasets[0].data = monthChartData.values;
+        revenueChart.data.datasets[0].label = "Doanh thu theo tháng (triệu VNĐ)";
+        revenueChart.update();
+        this.style.display = 'none';
+    });
+
 </script>
 

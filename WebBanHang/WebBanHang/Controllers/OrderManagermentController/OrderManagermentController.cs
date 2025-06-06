@@ -172,5 +172,90 @@ namespace WebBanHang.Controllers.OrderManagermentController
 
             return Json(new { orders = pagedOrders, totalOrders, totalPages, currentPage = page });
         }
+        [HttpGet]
+        public IActionResult FilterByPayment(int? paymentMethod, string status = "", int page = 1, int pageSize = 5)
+        {
+            var orders = _context.DonHangs
+                .Include(d => d.IdkhachHangNavigation)
+                .Include(d => d.IdthanhToanNavigation)
+                .AsQueryable();
+
+            if (paymentMethod.HasValue && paymentMethod.Value > 0)
+                orders = orders.Where(d => d.IdthanhToan == paymentMethod.Value);
+
+            if (!string.IsNullOrEmpty(status))
+                orders = orders.Where(d => d.TrangThai == status);
+
+            var totalOrders = orders.Count();
+            var totalPages = (int)Math.Ceiling((double)totalOrders / pageSize);
+
+            var pagedOrders = orders
+                .OrderByDescending(d => d.NgayLap)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .Select(order => new {
+                    iddonHang = order.IddonHang,
+                    khachHang = order.IdkhachHangNavigation.HoTen,
+                    ngayLap = order.NgayLap.HasValue ? order.NgayLap.Value.ToString("dd/MM/yyyy") : "",
+                    tongTien = order.TongTien.HasValue ? order.TongTien.Value.ToString("N0") + "đ" : "0đ",
+                    thanhToan = order.IdthanhToanNavigation.TenThanhToan,
+                    trangThai = order.TrangThai
+                }).ToList();
+
+            return Json(new { orders = pagedOrders, totalOrders, totalPages, currentPage = page });
+        }
+        [HttpGet]
+        public IActionResult FilterOrders(string status = "", int paymentMethod = 0, int page = 1, int pageSize = 5)
+        {
+            var orders = _context.DonHangs
+                .Include(d => d.IdkhachHangNavigation)
+                .Include(d => d.IdthanhToanNavigation)
+                .AsQueryable();
+
+            if (!string.IsNullOrEmpty(status))
+                orders = orders.Where(d => d.TrangThai == status);
+
+            if (paymentMethod > 0)
+                orders = orders.Where(d => d.IdthanhToan == paymentMethod);
+
+            var totalOrders = orders.Count();
+            var totalPages = (int)Math.Ceiling((double)totalOrders / pageSize);
+
+            var pagedOrders = orders
+                .OrderByDescending(d => d.NgayLap)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .Select(order => new {
+                    iddonHang = order.IddonHang,
+                    khachHang = order.IdkhachHangNavigation.HoTen,
+                    ngayLap = order.NgayLap.HasValue ? order.NgayLap.Value.ToString("dd/MM/yyyy") : "",
+                    tongTien = order.TongTien.HasValue ? order.TongTien.Value.ToString("N0") + "đ" : "0đ",
+                    thanhToan = order.IdthanhToanNavigation.TenThanhToan,
+                    trangThai = order.TrangThai
+                }).ToList();
+
+            return Json(new { orders = pagedOrders, totalOrders, totalPages, currentPage = page });
+        }
+        [HttpPost]
+        public IActionResult DeleteOrder(int id)
+        {
+            var order = _context.DonHangs
+                .Include(d => d.ChiTietDonHangs)
+                .FirstOrDefault(d => d.IddonHang == id);
+
+            if (order == null)
+                return Json(new { success = false, message = "Không tìm thấy đơn hàng." });
+
+            // Xóa chi tiết đơn hàng trước
+            _context.ChiTietDonHangs.RemoveRange(order.ChiTietDonHangs);
+
+            // Xóa đơn hàng
+            _context.DonHangs.Remove(order);
+
+            _context.SaveChanges();
+                
+            TempData["SuccessMessage"] = "Xóa đơn hàng thành công!";
+            return Json(new { success = true });
+        }
     }
 }

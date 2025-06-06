@@ -62,15 +62,16 @@ namespace WebBanHang.Controllers.HomeDashboardController
             ViewBag.DanangProducts = danangCategories.Select(c =>
     c.SanPhams.Select(sp => new { sp.TenSanPham, sp.SoLuongTon }).ToList()
 ).ToList();
-ViewBag.HueProducts = hueCategories.Select(c => 
-    c.SanPhams.Select(sp => new { sp.TenSanPham, sp.SoLuongTon }).ToList()
-).ToList();
+            ViewBag.HueProducts = hueCategories.Select(c =>
+                c.SanPhams.Select(sp => new { sp.TenSanPham, sp.SoLuongTon }).ToList()
+            ).ToList();
 
-ViewBag.QuangNamProducts = quangnamCategories.Select(c => 
-    c.SanPhams.Select(sp => new { sp.TenSanPham, sp.SoLuongTon }).ToList()
-).ToList();
+            ViewBag.QuangNamProducts = quangnamCategories.Select(c =>
+                c.SanPhams.Select(sp => new { sp.TenSanPham, sp.SoLuongTon }).ToList()
+            ).ToList();
             // Tính tổng doanh thu từ tất cả các đơn hàng
             decimal doanhThu = _context.DonHangs
+                .Where(d => d.TrangThai == "Hoàn thành") // Chỉ lấy đơn hàng hoàn thành
                 .Include(d => d.ChiTietDonHangs)
                 .ThenInclude(c => c.IdsanPhamNavigation)
                 .Sum(d => d.ChiTietDonHangs.Sum(c => c.SoLuong * c.IdsanPhamNavigation.GiaBan)) ?? 0;
@@ -80,10 +81,11 @@ ViewBag.QuangNamProducts = quangnamCategories.Select(c =>
             ViewBag.DoanhThu = doanhThu;
 
             var doanhThuThang = _context.DonHangs
-                .Where(d => d.NgayLap.HasValue)
+                .Where(d => d.NgayLap.HasValue && d.TrangThai == "Hoàn thành") // Thêm điều kiện trạng thái hoàn thành
                 .GroupBy(d => d.NgayLap.Value.Month)
                 .OrderBy(g => g.Key)
-                .Select(g => new {
+                .Select(g => new
+                {
                     Thang = $"T{g.Key}",
                     TongTien = Math.Round(g.Sum(x => x.TongTien) ?? 0 / 1_000_000M, 2) // triệu
                 })
@@ -96,7 +98,8 @@ ViewBag.QuangNamProducts = quangnamCategories.Select(c =>
             var danhMucPhanBo = _context.SanPhams
                 .Include(s => s.IddanhMucNavigation) // Đảm bảo navigation property được include
                 .GroupBy(s => s.IddanhMucNavigation != null ? s.IddanhMucNavigation.TenDanhMuc : "Khác") // Kiểm tra null và nhóm theo tên danh mục
-                .Select(g => new {
+                .Select(g => new
+                {
                     TenDanhMuc = g.Key, // Tên danh mục (key trong group)
                     SoLuong = g.Count() // Đếm số lượng sản phẩm trong mỗi nhóm
                 })
@@ -130,11 +133,13 @@ ViewBag.QuangNamProducts = quangnamCategories.Select(c =>
 
             var top5SanPham = _context.ChiTietDonHangs
                 .Include(c => c.IdsanPhamNavigation)
-                .GroupBy(c => new {
+                .GroupBy(c => new
+                {
                     c.IdsanPhamNavigation.TenSanPham,
                     c.IdsanPhamNavigation.IdsanPham
                 })
-                .Select(g => new {
+                .Select(g => new
+                {
                     TenSanPham = g.Key.TenSanPham,
                     SoLuongBan = g.Sum(x => x.SoLuong)
                 })
@@ -146,6 +151,35 @@ ViewBag.QuangNamProducts = quangnamCategories.Select(c =>
             ViewBag.Top5Values = top5SanPham.Select(x => x.SoLuongBan).ToList();
 
             return View();
+        }
+        [HttpGet]
+        public JsonResult GetDoanhThuNgayTheoThang(int month)
+        {
+            // Lấy năm hiện tại, có thể sửa lại nếu muốn chọn năm
+            int year = DateTime.Now.Year;
+            int daysInMonth = DateTime.DaysInMonth(year, month);
+
+            // Lấy doanh thu từng ngày có đơn hàng
+            var doanhThuNgay = _context.DonHangs
+                .Where(d => d.NgayLap.HasValue && d.TrangThai == "Hoàn thành" && d.NgayLap.Value.Month == month && d.NgayLap.Value.Year == year)
+                .GroupBy(d => d.NgayLap.Value.Day)
+                .Select(g => new {
+                    Ngay = g.Key,
+                    TongTien = Math.Round((g.Sum(x => x.TongTien) ?? 0) / 1_000_000M, 2)
+                })
+                .ToList();
+
+            // Tạo mảng đủ số ngày trong tháng, mặc định 0
+            var labels = new List<string>();
+            var values = new List<decimal>();
+            for (int day = 1; day <= daysInMonth; day++)
+            {
+                labels.Add($"Ngày {day}");
+                var doanhThu = doanhThuNgay.FirstOrDefault(x => x.Ngay == day);
+                values.Add(doanhThu != null ? doanhThu.TongTien : 0);
+            }
+
+            return Json(new { labels, values });
         }
     }
 }

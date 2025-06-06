@@ -1,6 +1,15 @@
 ﻿@{
     ViewData["Title"] = "Quan ly don hang";
 }
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @TempData["SuccessMessage"]
+        <button type="button" class="close" data-dismiss="alert" aria-label="Đóng">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+}
 @model List<WebBanHang.Models.DonHang>
 @{
     int currentPage = ViewBag.CurrentPage;
@@ -114,49 +123,49 @@
             <div class="table-responsive">
                 <table class="table table-hover">
                     <thead class="thead-light">
-                    <tr>
-                        <th>Mã đơn hàng</th>
-                        <th>Khách hàng</th>
-                        <th>Ngày đặt</th>
-                        <th>Tổng tiền</th>
-                        <th>Phương thức</th>
-                        <th>Trạng thái</th>
-                        <th>Thao tác</th>
-                    </tr>
+                        <tr>
+                            <th>Mã đơn hàng</th>
+                            <th>Khách hàng</th>
+                            <th>Ngày đặt</th>
+                            <th>Tổng tiền</th>
+                            <th>Phương thức</th>
+                            <th>Trạng thái</th>
+                            <th>Thao tác</th>
+                        </tr>
                     </thead>
                     <tbody>
-                    @foreach (var order in ViewBag.Orders)
-                    {
-                        string badgeClass = order.TrangThai switch
+                        @foreach (var order in ViewBag.Orders)
                         {
-                            "Đã giao hàng" => "success",
-                            "Đang giao hàng" => "warning",
-                            "Đã đặt hàng" => "info",
-                            "Đang xử lý" => "primary",
-                            "Đã hủy" => "danger",
-                            _ => "secondary"
-                        };
+                            string badgeClass = order.TrangThai switch
+                            {
+                                "Đã giao hàng" => "success",
+                                "Đang giao hàng" => "warning",
+                                "Đã đặt hàng" => "info",
+                                "Đang xử lý" => "primary",
+                                "Đã hủy" => "danger",
+                                _ => "secondary"
+                            };
 
-                        <tr>
-                            <td>@order.IddonHang</td>
-                            <td>@order.IdkhachHangNavigation?.HoTen</td>
-                            <td>@order.NgayLap.ToString("dd/MM/yyyy")</td>
-                            <td>@string.Format("{0:N0}đ", order.TongTien)</td>
-                            <td>@order.IdthanhToanNavigation?.TenThanhToan</td>
-                            <td><span class="badge badge-@badgeClass">@order.TrangThai</span></td>
-                            <td>
-                                <button class="btn btn-sm btn-info view-details-btn" data-id="@order.IddonHang" data-toggle="modal" data-target="#orderDetailModal" title="Chi tiết">
-                                    <i class="fas fa-eye"></i>
-                                </button>
-                                @* <button class="btn btn-sm btn-success" title="Xác nhận"> *@
-                                @*     <i class="fas fa-check"></i> *@
-                                @* </button> *@
-                                <button class="btn btn-sm btn-danger" title="Hủy">
-                                    <i class="fas fa-times"></i>
-                                </button>
-                            </td>
-                        </tr>
-                    }
+                            <tr>
+                                <td>@order.IddonHang</td>
+                                <td>@order.IdkhachHangNavigation?.HoTen</td>
+                                <td>@order.NgayLap.ToString("dd/MM/yyyy")</td>
+                                <td>@string.Format("{0:N0}đ", order.TongTien)</td>
+                                <td>@order.IdthanhToanNavigation?.TenThanhToan</td>
+                                <td><span class="badge badge-@badgeClass">@order.TrangThai</span></td>
+                                <td>
+                                    <button class="btn btn-sm btn-info view-details-btn" data-id="@order.IddonHang" data-toggle="modal" data-target="#orderDetailModal" title="Chi tiết">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    @* <button class="btn btn-sm btn-success" title="Xác nhận"> *@
+                                    @*     <i class="fas fa-check"></i> *@
+                                    @* </button> *@
+                                    <button class="btn btn-sm btn-danger delete-order-btn" data-id="@order.IddonHang" title="Hủy">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        }
                     </tbody>
                 </table>
             </div>
@@ -252,7 +261,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Đóng</button>
-                    
+
                     <button type="button" class="btn btn-info" id="savePDFButton" onclick="savePDF()" style="display: none;">Lưu PDF</button>
                     <button type="submit" class="btn btn-primary">Cập nhật trạng thái</button>
                 </div>
@@ -268,343 +277,556 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/polyfills.umd.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.2/purify.min.js"></script>
     <script>
-        $(document).ready(function () {
-            $(".view-details-btn").click(function () {
-                var orderId = $(this).data("id");
+                $(document).ready(function () {
+                       $(document).on("click", ".view-details-btn", function () {
+                        var orderId = $(this).data("id");
 
-                $.ajax({
-                    url: '/OrderManagerment/GetOrderById',
-                    type: 'GET',
-                    data: { id: orderId },
-                    success: function (data) {
-                        // Gán dữ liệu hiển thị
-                        $("#modalOrderId").text(data.iddonHang); // span
-                        $("#modalOrderIdHidden").val(data.iddonHang); // hidden input
-                        $("#modalCustomerName").text(data.khachHang);
-                        $("#modalOrderDate").text(data.ngayLap);
-                        $("#modalTotalAmount").text(data.tongTien);
-                        $("#modalPaymentMethod").text(data.thanhToan);
-                        $("#modalOrderStatus").val(data.trangThai);
+                        $.ajax({
+                            url: '/OrderManagerment/GetOrderById',
+                            type: 'GET',
+                            data: { id: orderId },
+                            success: function (data) {
+                                // Gán dữ liệu hiển thị
+                                $("#modalOrderId").text(data.iddonHang); // span
+                                $("#modalOrderIdHidden").val(data.iddonHang); // hidden input
+                                $("#modalCustomerName").text(data.khachHang);
+                                $("#modalOrderDate").text(data.ngayLap);
+                                $("#modalTotalAmount").text(data.tongTien);
+                                $("#modalPaymentMethod").text(data.thanhToan);
+                                $("#modalOrderStatus").val(data.trangThai);
 
-                        // Hiển thị chi tiết sản phẩm
-                        let tbody = $("#modalOrderItems");
-                        tbody.empty();
+                                // Hiển thị chi tiết sản phẩm
+                                let tbody = $("#modalOrderItems");
+                                tbody.empty();
 
-                        data.chiTiet.forEach(item => {
-                            tbody.append(`
-                                <tr>
-                                    <td>${item.tenSanPham}</td>
-                                    <td>${item.soLuong}</td>
-                                    <td>${item.donGia.toLocaleString()}đ</td>
-                                    <td>${item.thanhTien.toLocaleString()}đ</td>
-                                </tr>
-                            `);
+                                data.chiTiet.forEach(item => {
+                                    tbody.append(`
+                                        <tr>
+                                            <td>${item.tenSanPham}</td>
+                                            <td>${item.soLuong}</td>
+                                            <td>${item.donGia.toLocaleString()}đ</td>
+                                            <td>${item.thanhTien.toLocaleString()}đ</td>
+                                        </tr>
+                                    `);
+                                });
+
+                                // Kiểm tra trạng thái đơn hàng để hiển thị/ẩn nút Lưu PDF
+                                if (data.trangThai === "Hoàn thành") {
+                                    $("#savePDFButton").show();
+                                } else {
+                                    $("#savePDFButton").hide();
+                                }
+
+                                // Hiển thị modal
+                                $("#orderDetailModal").modal('show');
+                            }
                         });
+                    });
 
-                        // Kiểm tra trạng thái đơn hàng để hiển thị/ẩn nút Lưu PDF
-                        if (data.trangThai === "Hoàn thành") {
-                            $("#savePDFButton").show();
+                    // Đảm bảo backdrop biến mất khi đóng modal
+                    $('#orderDetailModal').on('hidden.bs.modal', function () {
+                        $('body').removeClass('modal-open');
+                        $('.modal-backdrop').remove();
+                    });
+
+                    // Đóng modal bằng nút "Đóng"
+                    $('[data-dismiss="modal"]').click(function () {
+                        $('#orderDetailModal').modal('hide');
+                    });
+
+                    // Hiển thị/ẩn nút Lưu PDF khi thay đổi trạng thái đơn hàng
+                    $('#modalOrderStatus').change(function() {
+                        if ($(this).val() === "Hoàn thành") {
+                            $('#savePDFButton').show();
                         } else {
-                            $("#savePDFButton").hide();
+                            $('#savePDFButton').hide();
+                        }
+                    });
+                });
+
+                // Function để tạo và tải PDF sử dụng HTML2Canvas cho tiếng Việt
+                function exportToPDF() {
+                    // Tạo một phần tử tạm thời để render nội dung PDF
+                    const printContainer = document.createElement('div');
+                    printContainer.style.padding = '20px';
+                    printContainer.style.fontFamily = 'Arial, sans-serif';
+                    printContainer.style.position = 'absolute';
+                    printContainer.style.left = '-9999px';
+                    printContainer.style.top = '-9999px';
+                    printContainer.style.width = '210mm'; // Chiều rộng A4
+
+                    // Lấy thông tin đơn hàng
+                    const orderId = $("#modalOrderId").text();
+                    const customerName = $("#modalCustomerName").text();
+                    const orderDate = $("#modalOrderDate").text();
+                    const paymentMethod = $("#modalPaymentMethod").text();
+                    const orderStatus = $("#modalOrderStatus option:selected").text();
+                    const totalAmount = $("#modalTotalAmount").text();
+
+                    // Tạo nội dung HTML
+                    let htmlContent = `
+                        <div style="text-align: center; margin-bottom: 20px">
+                            <h1 style="font-size: 20px; font-weight: bold;">CHI TIẾT ĐƠN HÀNG</h1>
+                        </div>
+                        <div style="margin-bottom: 30px">
+                            <p><strong>Mã đơn hàng:</strong> ${orderId}</p>
+                            <p><strong>Khách hàng:</strong> ${customerName}</p>
+                            <p><strong>Ngày đặt:</strong> ${orderDate}</p>
+                            <p><strong>Trạng thái:</strong> ${orderStatus}</p>
+                            <p><strong>Phương thức thanh toán:</strong> ${paymentMethod}</p>
+                        </div>
+                        <div>
+                            <table style="width: 100%; border-collapse: collapse; margin-bottom: 30px;">
+                                <thead>
+                                    <tr style="background-color: #f2f2f2;">
+                                        <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Sản phẩm</th>
+                                        <th style="border: 1px solid #ddd; padding: 8px; text-align: center;">Số lượng</th>
+                                        <th style="border: 1px solid #ddd; padding: 8px; text-align: right;">Đơn giá</th>
+                                        <th style="border: 1px solid #ddd; padding: 8px; text-align: right;">Thành tiền</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                    `;
+
+                    // Thêm chi tiết sản phẩm
+                    $("#modalOrderItems tr").each(function(index) {
+                        const productName = $(this).find("td:eq(0)").text();
+                        const quantity = $(this).find("td:eq(1)").text();
+                        const price = $(this).find("td:eq(2)").text();
+                        const amount = $(this).find("td:eq(3)").text();
+
+                        htmlContent += `
+                            <tr>
+                                <td style="border: 1px solid #ddd; padding: 8px; text-align: left;">${productName}</td>
+                                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${quantity}</td>
+                                <td style="border: 1px solid #ddd; padding: 8px; text-align: right;">${price}</td>
+                                <td style="border: 1px solid #ddd; padding: 8px; text-align: right;">${amount}</td>
+                            </tr>
+                        `;
+                    });
+
+                    // Thêm tổng tiền
+                    htmlContent += `
+                                </tbody>
+                                <tfoot>
+                                    <tr>
+                                        <td colspan="3" style="border: 1px solid #ddd; padding: 8px; text-align: right;"><strong>Tổng tiền:</strong></td>
+                                        <td style="border: 1px solid #ddd; padding: 8px; text-align: right;"><strong>${totalAmount}</strong></td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    `;
+
+                    // Thêm chân trang
+                    const today = new Date();
+                    const dateStr = today.toLocaleDateString('vi-VN');
+                    htmlContent += `
+                        <div style="position: absolute; bottom: 20px; width: 100%;">
+                            <p style="font-size: 10px; font-style: italic; text-align: left;">Xuất ngày: ${dateStr}</p>
+                            <p style="font-size: 10px; font-style: italic; text-align: center;">Cảm ơn quý khách đã mua hàng!</p>
+                        </div>
+                    `;
+
+                    // Thêm nội dung vào container
+                    printContainer.innerHTML = DOMPurify.sanitize(htmlContent);
+                    document.body.appendChild(printContainer);
+
+                    // Sử dụng html2canvas để chuyển HTML thành hình ảnh
+                    html2canvas(printContainer, {
+                        scale: 2, // Tăng độ phân giải
+                        useCORS: true,
+                        allowTaint: true,
+                        logging: false
+                    }).then(canvas => {
+                        // Khởi tạo jsPDF
+                        const { jsPDF } = window.jspdf;
+                        const doc = new jsPDF('p', 'mm', 'a4');
+
+                        // Tính toán tỷ lệ để vừa với trang A4
+                        const imgWidth = 210; // A4 width in mm
+                        const pageHeight = 297; // A4 height in mm
+                        const imgHeight = canvas.height * imgWidth / canvas.width;
+
+                        // Thêm ảnh vào PDF
+                        const imgData = canvas.toDataURL('image/png');
+                        doc.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+
+                        // Thêm trang nếu nội dung vượt quá một trang
+                        let heightLeft = imgHeight;
+                        let position = 0;
+
+                        heightLeft -= pageHeight;
+
+                        while (heightLeft > 0) {
+                            position = heightLeft - imgHeight;
+                            doc.addPage();
+                            doc.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+                            heightLeft -= pageHeight;
                         }
 
-                        // Hiển thị modal
-                        $("#orderDetailModal").modal('show');
+                        // Lưu file với tên theo mã đơn hàng
+                        const filename = `DonHang_${orderId}_${dateStr.replace(/\//g, '-')}.pdf`;
+                        doc.save(filename);
+
+                        // Xóa container tạm
+                        document.body.removeChild(printContainer);
+                    });
+                }
+
+                // Gán sự kiện cho nút lưu PDF
+                function savePDF() {
+                    exportToPDF();
+                }
+
+
+            // ...existing code...
+
+            // Sự kiện lọc theo trạng thái đơn hàng
+                    $('#orderStatus').change(function () {
+                    var status = $(this).val();
+                    $.ajax({
+                        url: '/OrderManagerment/FilterByStatus',
+                        type: 'GET',
+                        data: { status: status, page: 1, pageSize: 5 }, // reset về trang 1 khi lọc
+                        success: function (data) {
+                            var orders = data.orders;
+                            var tbody = $('.table-responsive tbody').first();
+                            tbody.empty();
+                            if (orders.length === 0) {
+                                tbody.append('<tr><td colspan="7" class="text-center">Không có đơn hàng nào.</td></tr>');
+                            } else {
+                                orders.forEach(function (order) {
+                                    let badgeClass = "secondary";
+                                    switch (order.trangThai) {
+                                        case "Đã giao hàng": badgeClass = "success"; break;
+                                        case "Đang giao hàng": badgeClass = "warning"; break;
+                                        case "Đã đặt hàng": badgeClass = "info"; break;
+                                        case "Đang xử lý": badgeClass = "primary"; break;
+                                        case "Đã hủy": badgeClass = "danger"; break;
+                                    }
+                                    tbody.append(`
+                                        <tr>
+                                            <td>${order.iddonHang}</td>
+                                            <td>${order.khachHang || ""}</td>
+                                            <td>${order.ngayLap}</td>
+                                            <td>${order.tongTien}</td>
+                                            <td>${order.thanhToan || ""}</td>
+                                            <td><span class="badge badge-${badgeClass}">${order.trangThai}</span></td>
+                                            <td>
+                                                <button class="btn btn-sm btn-info view-details-btn" data-id="${order.iddonHang}" data-toggle="modal" data-target="#orderDetailModal" title="Chi tiết">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                                <button class="btn btn-sm btn-danger" title="Hủy">
+                                                    <i class="fas fa-times"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    `);
+                                });
+                            }
+
+                            // Cập nhật tổng số đơn hàng và phân trang
+                            $('.text-muted').text(`Hiển thị 1 - ${orders.length} trong tổng số ${data.totalOrders} đơn hàng`);
+                            var pagination = '';
+                            for (let i = 1; i <= data.totalPages; i++) {
+                                pagination += `<li class="page-item${i === data.currentPage ? ' active' : ''}">
+                                    <a class="page-link" href="#" onclick="filterPage(${i});return false;">${i}</a>
+                                </li>`;
+                            }
+                            $('.pagination').html(pagination);
+                        }
+                    });
+                });
+
+                // Hàm chuyển trang khi lọc
+                function filterPage(page) {
+                    var status = $('#orderStatus').val();
+                    $.ajax({
+                        url: '/OrderManagerment/FilterByStatus',
+                        type: 'GET',
+                        data: { status: status, page: page, pageSize: 5 },
+                        success: function (data) {
+                            // ... giống như ở trên ...
+                        }
+                    });
+                }
+                        $('#customerSearch').on('keypress', function (e) {
+                    if (e.which === 13) { // Enter
+                        searchOrders();
                     }
                 });
-            });
+                $('#customerSearch').siblings('.input-group-append').find('button').click(function () {
+                    searchOrders();
+                });
 
-            // Đảm bảo backdrop biến mất khi đóng modal
-            $('#orderDetailModal').on('hidden.bs.modal', function () {
-                $('body').removeClass('modal-open');
-                $('.modal-backdrop').remove();
-            });
-
-            // Đóng modal bằng nút "Đóng"
-            $('[data-dismiss="modal"]').click(function () {
-                $('#orderDetailModal').modal('hide');
-            });
-
-            // Hiển thị/ẩn nút Lưu PDF khi thay đổi trạng thái đơn hàng
-            $('#modalOrderStatus').change(function() {
-                if ($(this).val() === "Hoàn thành") {
-                    $('#savePDFButton').show();
-                } else {
-                    $('#savePDFButton').hide();
-                }
-            });
-        });
-
-        // Function để tạo và tải PDF sử dụng HTML2Canvas cho tiếng Việt
-        function exportToPDF() {
-            // Tạo một phần tử tạm thời để render nội dung PDF
-            const printContainer = document.createElement('div');
-            printContainer.style.padding = '20px';
-            printContainer.style.fontFamily = 'Arial, sans-serif';
-            printContainer.style.position = 'absolute';
-            printContainer.style.left = '-9999px';
-            printContainer.style.top = '-9999px';
-            printContainer.style.width = '210mm'; // Chiều rộng A4
-
-            // Lấy thông tin đơn hàng
-            const orderId = $("#modalOrderId").text();
-            const customerName = $("#modalCustomerName").text();
-            const orderDate = $("#modalOrderDate").text();
-            const paymentMethod = $("#modalPaymentMethod").text();
-            const orderStatus = $("#modalOrderStatus option:selected").text();
-            const totalAmount = $("#modalTotalAmount").text();
-
-            // Tạo nội dung HTML
-            let htmlContent = `
-                <div style="text-align: center; margin-bottom: 20px">
-                    <h1 style="font-size: 20px; font-weight: bold;">CHI TIẾT ĐƠN HÀNG</h1>
-                </div>
-                <div style="margin-bottom: 30px">
-                    <p><strong>Mã đơn hàng:</strong> ${orderId}</p>
-                    <p><strong>Khách hàng:</strong> ${customerName}</p>
-                    <p><strong>Ngày đặt:</strong> ${orderDate}</p>
-                    <p><strong>Trạng thái:</strong> ${orderStatus}</p>
-                    <p><strong>Phương thức thanh toán:</strong> ${paymentMethod}</p>
-                </div>
-                <div>
-                    <table style="width: 100%; border-collapse: collapse; margin-bottom: 30px;">
-                        <thead>
-                            <tr style="background-color: #f2f2f2;">
-                                <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Sản phẩm</th>
-                                <th style="border: 1px solid #ddd; padding: 8px; text-align: center;">Số lượng</th>
-                                <th style="border: 1px solid #ddd; padding: 8px; text-align: right;">Đơn giá</th>
-                                <th style="border: 1px solid #ddd; padding: 8px; text-align: right;">Thành tiền</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-            `;
-
-            // Thêm chi tiết sản phẩm
-            $("#modalOrderItems tr").each(function(index) {
-                const productName = $(this).find("td:eq(0)").text();
-                const quantity = $(this).find("td:eq(1)").text();
-                const price = $(this).find("td:eq(2)").text();
-                const amount = $(this).find("td:eq(3)").text();
-
-                htmlContent += `
-                    <tr>
-                        <td style="border: 1px solid #ddd; padding: 8px; text-align: left;">${productName}</td>
-                        <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${quantity}</td>
-                        <td style="border: 1px solid #ddd; padding: 8px; text-align: right;">${price}</td>
-                        <td style="border: 1px solid #ddd; padding: 8px; text-align: right;">${amount}</td>
-                    </tr>
-                `;
-            });
-
-            // Thêm tổng tiền
-            htmlContent += `
-                        </tbody>
-                        <tfoot>
-                            <tr>
-                                <td colspan="3" style="border: 1px solid #ddd; padding: 8px; text-align: right;"><strong>Tổng tiền:</strong></td>
-                                <td style="border: 1px solid #ddd; padding: 8px; text-align: right;"><strong>${totalAmount}</strong></td>
-                            </tr>
-                        </tfoot>
-                    </table>
-                </div>
-            `;
-
-            // Thêm chân trang
-            const today = new Date();
-            const dateStr = today.toLocaleDateString('vi-VN');
-            htmlContent += `
-                <div style="position: absolute; bottom: 20px; width: 100%;">
-                    <p style="font-size: 10px; font-style: italic; text-align: left;">Xuất ngày: ${dateStr}</p>
-                    <p style="font-size: 10px; font-style: italic; text-align: center;">Cảm ơn quý khách đã mua hàng!</p>
-                </div>
-            `;
-
-            // Thêm nội dung vào container
-            printContainer.innerHTML = DOMPurify.sanitize(htmlContent);
-            document.body.appendChild(printContainer);
-
-            // Sử dụng html2canvas để chuyển HTML thành hình ảnh
-            html2canvas(printContainer, {
-                scale: 2, // Tăng độ phân giải
-                useCORS: true,
-                allowTaint: true,
-                logging: false
-            }).then(canvas => {
-                // Khởi tạo jsPDF
-                const { jsPDF } = window.jspdf;
-                const doc = new jsPDF('p', 'mm', 'a4');
-
-                // Tính toán tỷ lệ để vừa với trang A4
-                const imgWidth = 210; // A4 width in mm
-                const pageHeight = 297; // A4 height in mm
-                const imgHeight = canvas.height * imgWidth / canvas.width;
-
-                // Thêm ảnh vào PDF
-                const imgData = canvas.toDataURL('image/png');
-                doc.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
-
-                // Thêm trang nếu nội dung vượt quá một trang
-                let heightLeft = imgHeight;
-                let position = 0;
-
-                heightLeft -= pageHeight;
-
-                while (heightLeft > 0) {
-                    position = heightLeft - imgHeight;
-                    doc.addPage();
-                    doc.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-                    heightLeft -= pageHeight;
-                }
-
-                // Lưu file với tên theo mã đơn hàng
-                const filename = `DonHang_${orderId}_${dateStr.replace(/\//g, '-')}.pdf`;
-                doc.save(filename);
-
-                // Xóa container tạm
-                document.body.removeChild(printContainer);
-            });
-        }
-
-        // Gán sự kiện cho nút lưu PDF
-        function savePDF() {
-            exportToPDF();
-        }
-
-        
-    // ...existing code...
-
-    // Sự kiện lọc theo trạng thái đơn hàng
-            $('#orderStatus').change(function () {
-            var status = $(this).val();
-            $.ajax({
-                url: '/OrderManagerment/FilterByStatus',
-                type: 'GET',
-                data: { status: status, page: 1, pageSize: 5 }, // reset về trang 1 khi lọc
-                success: function (data) {
-                    var orders = data.orders;
-                    var tbody = $('.table-responsive tbody').first();
-                    tbody.empty();
-                    if (orders.length === 0) {
-                        tbody.append('<tr><td colspan="7" class="text-center">Không có đơn hàng nào.</td></tr>');
-                    } else {
-                        orders.forEach(function (order) {
-                            let badgeClass = "secondary";
-                            switch (order.trangThai) {
-                                case "Đã giao hàng": badgeClass = "success"; break;
-                                case "Đang giao hàng": badgeClass = "warning"; break;
-                                case "Đã đặt hàng": badgeClass = "info"; break;
-                                case "Đang xử lý": badgeClass = "primary"; break;
-                                case "Đã hủy": badgeClass = "danger"; break;
+                function searchOrders(page = 1) {
+                    var keyword = $('#customerSearch').val();
+                    var status = $('#orderStatus').val();
+                    $.ajax({
+                        url: '/OrderManagerment/SearchOrders',
+                        type: 'GET',
+                        data: { keyword: keyword, status: status, page: page, pageSize: 5 },
+                        success: function (data) {
+                            var orders = data.orders;
+                            var tbody = $('.table-responsive tbody').first();
+                            tbody.empty();
+                            if (orders.length === 0) {
+                                tbody.append('<tr><td colspan="7" class="text-center">Không có đơn hàng nào.</td></tr>');
+                            } else {
+                                orders.forEach(function (order) {
+                                    let badgeClass = "secondary";
+                                    switch (order.trangThai) {
+                                        case "Đã giao hàng": badgeClass = "success"; break;
+                                        case "Đang giao hàng": badgeClass = "warning"; break;
+                                        case "Đã đặt hàng": badgeClass = "info"; break;
+                                        case "Đang xử lý": badgeClass = "primary"; break;
+                                        case "Đã hủy": badgeClass = "danger"; break;
+                                    }
+                                    tbody.append(`
+                                        <tr>
+                                            <td>${order.iddonHang}</td>
+                                            <td>${order.khachHang || ""}</td>
+                                            <td>${order.ngayLap}</td>
+                                            <td>${order.tongTien}</td>
+                                            <td>${order.thanhToan || ""}</td>
+                                            <td><span class="badge badge-${badgeClass}">${order.trangThai}</span></td>
+                                            <td>
+                                                <button class="btn btn-sm btn-info view-details-btn" data-id="${order.iddonHang}" data-toggle="modal" data-target="#orderDetailModal" title="Chi tiết">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                                <button class="btn btn-sm btn-danger" title="Hủy">
+                                                    <i class="fas fa-times"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    `);
+                                });
                             }
-                            tbody.append(`
-                                <tr>
-                                    <td>${order.iddonHang}</td>
-                                    <td>${order.khachHang || ""}</td>
-                                    <td>${order.ngayLap}</td>
-                                    <td>${order.tongTien}</td>
-                                    <td>${order.thanhToan || ""}</td>
-                                    <td><span class="badge badge-${badgeClass}">${order.trangThai}</span></td>
-                                    <td>
-                                        <button class="btn btn-sm btn-info view-details-btn" data-id="${order.iddonHang}" data-toggle="modal" data-target="#orderDetailModal" title="Chi tiết">
-                                            <i class="fas fa-eye"></i>
-                                        </button>
-                                        <button class="btn btn-sm btn-danger" title="Hủy">
-                                            <i class="fas fa-times"></i>
-                                        </button>
-                                    </td>
-                                </tr>
-                            `);
-                        });
-                    }
-
-                    // Cập nhật tổng số đơn hàng và phân trang
-                    $('.text-muted').text(`Hiển thị 1 - ${orders.length} trong tổng số ${data.totalOrders} đơn hàng`);
-                    var pagination = '';
-                    for (let i = 1; i <= data.totalPages; i++) {
-                        pagination += `<li class="page-item${i === data.currentPage ? ' active' : ''}">
-                            <a class="page-link" href="#" onclick="filterPage(${i});return false;">${i}</a>
-                        </li>`;
-                    }
-                    $('.pagination').html(pagination);
+                            // Cập nhật tổng số đơn hàng và phân trang
+                            $('.text-muted').text(`Hiển thị 1 - ${orders.length} trong tổng số ${data.totalOrders} đơn hàng`);
+                            var pagination = '';
+                            for (let i = 1; i <= data.totalPages; i++) {
+                                pagination += `<li class="page-item${i === data.currentPage ? ' active' : ''}">
+                                    <a class="page-link" href="#" onclick="searchOrders(${i});return false;">${i}</a>
+                                </li>`;
+                            }
+                            $('.pagination').html(pagination);
+                        }
+                    });
                 }
-            });
-        });
 
-        // Hàm chuyển trang khi lọc
-        function filterPage(page) {
-            var status = $('#orderStatus').val();
-            $.ajax({
-                url: '/OrderManagerment/FilterByStatus',
-                type: 'GET',
-                data: { status: status, page: page, pageSize: 5 },
-                success: function (data) {
-                    // ... giống như ở trên ...
+                             $('#paymentMethod').change(function () {
+                    var paymentMethod = $(this).val();
+                    var status = $('#orderStatus').val();
+                    $.ajax({
+                        url: '/OrderManagerment/FilterByPayment',
+                        type: 'GET',
+                        data: { paymentMethod: paymentMethod, status: status, page: 1, pageSize: 5 },
+                        success: function (data) {
+                            var orders = data.orders;
+                            var tbody = $('.table-responsive tbody').first();
+                            tbody.empty();
+                            if (orders.length === 0) {
+                                tbody.append('<tr><td colspan="7" class="text-center">Không có đơn hàng nào.</td></tr>');
+                            } else {
+                                orders.forEach(function (order) {
+                                    let badgeClass = "secondary";
+                                    switch (order.trangThai) {
+                                        case "Đã giao hàng": badgeClass = "success"; break;
+                                        case "Đang giao hàng": badgeClass = "warning"; break;
+                                        case "Đã đặt hàng": badgeClass = "info"; break;
+                                        case "Đang xử lý": badgeClass = "primary"; break;
+                                        case "Đã hủy": badgeClass = "danger"; break;
+                                    }
+                                    tbody.append(`
+                                        <tr>
+                                            <td>${order.iddonHang}</td>
+                                            <td>${order.khachHang || ""}</td>
+                                            <td>${order.ngayLap}</td>
+                                            <td>${order.tongTien}</td>
+                                            <td>${order.thanhToan || ""}</td>
+                                            <td><span class="badge badge-${badgeClass}">${order.trangThai}</span></td>
+                                            <td>
+                                                <button class="btn btn-sm btn-info view-details-btn" data-id="${order.iddonHang}" data-toggle="modal" data-target="#orderDetailModal" title="Chi tiết">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                                <button class="btn btn-sm btn-danger" title="Hủy">
+                                                    <i class="fas fa-times"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    `);
+                                });
+                            }
+                            // Cập nhật tổng số đơn hàng và phân trang
+                            $('.text-muted').text(`Hiển thị 1 - ${orders.length} trong tổng số ${data.totalOrders} đơn hàng`);
+                            var pagination = '';
+                            for (let i = 1; i <= data.totalPages; i++) {
+                                pagination += `<li class="page-item${i === data.currentPage ? ' active' : ''}">
+                                    <a class="page-link" href="#" onclick="filterPaymentPage(${i});return false;">${i}</a>
+                                </li>`;
+                            }
+                            $('.pagination').html(pagination);
+                        }
+                    });
+                });
+
+                // Hàm chuyển trang khi lọc theo phương thức thanh toán
+                function filterPaymentPage(page) {
+                    var paymentMethod = $('#paymentMethod').val();
+                    var status = $('#orderStatus').val();
+                    $.ajax({
+                        url: '/OrderManagerment/FilterByPayment',
+                        type: 'GET',
+                        data: { paymentMethod: paymentMethod, status: status, page: page, pageSize: 5 },
+                        success: function (data) {
+                                 var orders = data.orders;
+                                var tbody = $('.table-responsive tbody').first();
+                                tbody.empty();
+                                if (orders.length === 0) {
+                                    tbody.append('<tr><td colspan="7" class="text-center">Không có đơn hàng nào.</td></tr>');
+                                } else {
+                                    orders.forEach(function (order) {
+                                        let badgeClass = "secondary";
+                                        switch (order.trangThai) {
+                                            case "Đã giao hàng": badgeClass = "success"; break;
+                                            case "Đang giao hàng": badgeClass = "warning"; break;
+                                            case "Đã đặt hàng": badgeClass = "info"; break;
+                                            case "Đang xử lý": badgeClass = "primary"; break;
+                                            case "Đã hủy": badgeClass = "danger"; break;
+                                        }
+                                        tbody.append(`
+                                            <tr>
+                                                <td>${order.iddonHang}</td>
+                                                <td>${order.khachHang || ""}</td>
+                                                <td>${order.ngayLap}</td>
+                                                <td>${order.tongTien}</td>
+                                                <td>${order.thanhToan || ""}</td>
+                                                <td><span class="badge badge-${badgeClass}">${order.trangThai}</span></td>
+                                                <td>
+                                                    <button class="btn btn-sm btn-info view-details-btn" data-id="${order.iddonHang}" data-toggle="modal" data-target="#orderDetailModal" title="Chi tiết">
+                                                        <i class="fas fa-eye"></i>
+                                                    </button>
+                                                    <button class="btn btn-sm btn-danger" title="Hủy">
+                                                        <i class="fas fa-times"></i>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        `);
+                                    });
+                                }
+                                // Cập nhật tổng số đơn hàng và phân trang
+                                $('.text-muted').text(`Hiển thị 1 - ${orders.length} trong tổng số ${data.totalOrders} đơn hàng`);
+                                var pagination = '';
+                                for (let i = 1; i <= data.totalPages; i++) {
+                                    pagination += `<li class="page-item${i === data.currentPage ? ' active' : ''}">
+                                        <a class="page-link" href="#" onclick="searchOrders(${i});return false;">${i}</a>
+                                    </li>`;
+                                }
+                                $('.pagination').html(pagination);
+                        }
+                    });
                 }
-            });
-        }
-                $('#customerSearch').on('keypress', function (e) {
-            if (e.which === 13) { // Enter
-                searchOrders();
+
+                function filterOrders(page = 1) {
+                    var status = $('#orderStatus').val();
+                    var paymentMethod = $('#paymentMethod').val();
+                    $.ajax({
+                        url: '/OrderManagerment/FilterOrders',
+                        type: 'GET',
+                        data: { status: status, paymentMethod: paymentMethod, page: page, pageSize: 5 },
+                        success: function (data) {
+                            var orders = data.orders;
+                            var tbody = $('.table-responsive tbody').first();
+                            tbody.empty();
+                            if (orders.length === 0) {
+                                tbody.append('<tr><td colspan="7" class="text-center">Không có đơn hàng nào.</td></tr>');
+                            } else {
+                                orders.forEach(function (order) {
+                                    let badgeClass = "secondary";
+                                    switch (order.trangThai) {
+                                        case "Đã giao hàng": badgeClass = "success"; break;
+                                        case "Đang giao hàng": badgeClass = "warning"; break;
+                                        case "Đã đặt hàng": badgeClass = "info"; break;
+                                        case "Đang xử lý": badgeClass = "primary"; break;
+                                        case "Đã hủy": badgeClass = "danger"; break;
+                                    }
+                                    tbody.append(`
+                                        <tr>
+                                            <td>${order.iddonHang}</td>
+                                            <td>${order.khachHang || ""}</td>
+                                            <td>${order.ngayLap}</td>
+                                            <td>${order.tongTien}</td>
+                                            <td>${order.thanhToan || ""}</td>
+                                            <td><span class="badge badge-${badgeClass}">${order.trangThai}</span></td>
+                                            <td>
+                                                <button class="btn btn-sm btn-info view-details-btn" data-id="${order.iddonHang}" data-toggle="modal" data-target="#orderDetailModal" title="Chi tiết">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                                <button class="btn btn-sm btn-danger" title="Hủy">
+                                                    <i class="fas fa-times"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    `);
+                                });
+                            }
+                            // Cập nhật tổng số đơn hàng và phân trang
+                            $('.text-muted').text(`Hiển thị 1 - ${orders.length} trong tổng số ${data.totalOrders} đơn hàng`);
+                            var pagination = '';
+                            for (let i = 1; i <= data.totalPages; i++) {
+                                pagination += `<li class="page-item${i === data.currentPage ? ' active' : ''}">
+                                    <a class="page-link" href="#" onclick="filterOrders(${i});return false;">${i}</a>
+                                </li>`;
+                            }
+                            $('.pagination').html(pagination);
+                        }
+                    });
+                }
+
+                // Gọi filterOrders khi thay đổi bất kỳ combobox nào
+                $('#orderStatus, #paymentMethod').change(function () {
+                    filterOrders();
+                });
+
+                //Xóa đơn
+                $(document).on('click', '.delete-order-btn', function () {
+            var orderId = $(this).data('id');
+            if (confirm('Bạn có chắc chắn muốn xóa đơn hàng này?')) {
+                $.ajax({
+                    url: '/OrderManagerment/DeleteOrder',
+                    type: 'POST',
+                    data: { id: orderId },
+                    success: function (res) {
+                        if (res.success) {
+                            // Hiển thị thông báo thành công
+                            showAlert('success', 'Xóa đơn hàng thành công!');
+                            // Reload lại danh sách đơn hàng
+                            filterOrders();
+                        } else {
+                            showAlert('danger', res.message || 'Xóa thất bại!');
+                        }
+                    },
+                    error: function () {
+                        showAlert('danger', 'Có lỗi xảy ra!');
+                    }
+                });
             }
-        });
-        $('#customerSearch').siblings('.input-group-append').find('button').click(function () {
-            searchOrders();
-        });
+                });
 
-        function searchOrders(page = 1) {
-            var keyword = $('#customerSearch').val();
-            var status = $('#orderStatus').val();
-            $.ajax({
-                url: '/OrderManagerment/SearchOrders',
-                type: 'GET',
-                data: { keyword: keyword, status: status, page: page, pageSize: 5 },
-                success: function (data) {
-                    var orders = data.orders;
-                    var tbody = $('.table-responsive tbody').first();
-                    tbody.empty();
-                    if (orders.length === 0) {
-                        tbody.append('<tr><td colspan="7" class="text-center">Không có đơn hàng nào.</td></tr>');
-                    } else {
-                        orders.forEach(function (order) {
-                            let badgeClass = "secondary";
-                            switch (order.trangThai) {
-                                case "Đã giao hàng": badgeClass = "success"; break;
-                                case "Đang giao hàng": badgeClass = "warning"; break;
-                                case "Đã đặt hàng": badgeClass = "info"; break;
-                                case "Đang xử lý": badgeClass = "primary"; break;
-                                case "Đã hủy": badgeClass = "danger"; break;
-                            }
-                            tbody.append(`
-                                <tr>
-                                    <td>${order.iddonHang}</td>
-                                    <td>${order.khachHang || ""}</td>
-                                    <td>${order.ngayLap}</td>
-                                    <td>${order.tongTien}</td>
-                                    <td>${order.thanhToan || ""}</td>
-                                    <td><span class="badge badge-${badgeClass}">${order.trangThai}</span></td>
-                                    <td>
-                                        <button class="btn btn-sm btn-info view-details-btn" data-id="${order.iddonHang}" data-toggle="modal" data-target="#orderDetailModal" title="Chi tiết">
-                                            <i class="fas fa-eye"></i>
-                                        </button>
-                                        <button class="btn btn-sm btn-danger" title="Hủy">
-                                            <i class="fas fa-times"></i>
-                                        </button>
-                                    </td>
-                                </tr>
-                            `);
-                        });
-                    }
-                    // Cập nhật tổng số đơn hàng và phân trang
-                    $('.text-muted').text(`Hiển thị 1 - ${orders.length} trong tổng số ${data.totalOrders} đơn hàng`);
-                    var pagination = '';
-                    for (let i = 1; i <= data.totalPages; i++) {
-                        pagination += `<li class="page-item${i === data.currentPage ? ' active' : ''}">
-                            <a class="page-link" href="#" onclick="searchOrders(${i});return false;">${i}</a>
-                        </li>`;
-                    }
-                    $('.pagination').html(pagination);
-                }
-            });
+        // Hàm hiển thị alert
+        function showAlert(type, message) {
+            var alertHtml = `<div class="alert alert-${type} alert-dismissible fade show" role="alert">
+                ${message}
+                <button type="button" class="close" data-dismiss="alert" aria-label="Đóng">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>`;
+            $('.content').prepend(alertHtml);
+            setTimeout(function () {
+                $('.alert').alert('close');
+            }, 3000);
         }
     </script>
 }

@@ -293,5 +293,27 @@ main {
     }
 
 
+.chart-area {
+    height: 350px;
+    min-height: 300px;
+    position: relative;
+    width: 100%;
+    margin-bottom: 1rem;
+}
 
+#revenueChart {
+    height: 100% !important;
+    max-height: 350px;
+    width: 100% !important;
+}
 
+.chart-pie {
+    min-height: 250px;
+    height: 250px;
+    position: relative;
+}
+
+    .chart-pie canvas {
+        height: 100% !important;
+        width: 100% !important;
+    }
